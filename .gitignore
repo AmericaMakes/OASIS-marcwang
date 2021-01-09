@@ -7,6 +7,10 @@ wwwroot/view-resources/Views/Shared/Components/**/*.min.*
 # build folder
 /build
 /bin
+
+# vscode setting
+.vscode/
+
 # Prerequisites
 *.d
 
