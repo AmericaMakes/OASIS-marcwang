@@ -1,3 +1,6 @@
 [submodule "lib/vtk"]
 	path = lib/vtk
 	url = https://github.com/Kitware/VTK.git
+[submodule "lib/googletest"]
+	path = lib/googletest
+	url = https://github.com/google/googletest.git
