@@ -1,20 +1,34 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.16)
 
-project(OASIS_AmericaMake)
+project(OASIS_AmericaMake LANGUAGES CXX)
+
+set_property(DIRECTORY PROPERTY EP_BASE ${CMAKE_BINARY_DIR}/subprojects)
 
 include(ExternalProject)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set (VTK_LIB "VTK")
-ExternalProject_Add(
-    ${VTK_LIB} 
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/vtk
-    BUILD_ALWAYS      OFF
-    INSTALL_DIR       ${CMAKE_CURRENT_BINARY_DIR}/ext/${VTK_LIB}
-    CMAKE_CACHE_ARGS
-		-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-    BUILD_COMMAND     ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target INSTALL
-)
+add_subdirectory(thirdparty)
 
-add_subdirectory(test)
-add_subdirectory(lib/googletest)
+include(ExternalProject)
+ExternalProject_Add(oasis_test
+  DEPENDS
+    VTK
+    gtest
+  SOURCE_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR}/test
+  CMAKE_ARGS
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+    -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+    -DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}
+    -DCMAKE_CXX_STANDARD_REQUIRED=${CMAKE_CXX_STANDARD_REQUIRED}
+  CMAKE_CACHE_ARGS
+    -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
+    -DCMAKE_PREFIX_PATH:PATH=${CMAKE_PREFIX_PATH}
+  BUILD_ALWAYS
+    1
+  INSTALL_COMMAND
+    ""
+  )
