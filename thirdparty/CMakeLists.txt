@@ -4,6 +4,7 @@ include(ExternalProject)
 
 find_package(VTK CONFIG QUIET)
 
+
 if(NOT VTK_FOUND)
 
 set(VTK_DIR ${CMAKE_BINARY_DIR}/VTK)
@@ -25,4 +26,21 @@ ExternalProject_Add(
 
 endif()
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest)
+ExternalProject_Add(
+  googletest
+  SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/googletest
+  CMAKE_ARGS
+      -DBUILD_SHARED_LIBS:BOOL=ON
+      -DCMAKE_INSTALL_PREFIX=${GTEST_DIR}
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+      -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+      -DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}
+      -DCMAKE_CXX_STANDARD_REQUIRED=${CMAKE_CXX_STANDARD_REQUIRED}
+    CMAKE_CACHE_ARGS
+      -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
+)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest
+                ${GTEST_DIR})
+
