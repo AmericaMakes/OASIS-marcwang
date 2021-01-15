@@ -4,8 +4,8 @@ project(OASIS_AmericaMake LANGUAGES CXX)
 
 set_property(DIRECTORY PROPERTY EP_BASE ${CMAKE_BINARY_DIR}/subprojects)
 
+SET(VTK_SRC ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/vtk)
 SET(VTK_DIR ${CMAKE_BINARY_DIR}/VTK)
-SET(GTEST_DIR ${CMAKE_BINARY_DIR}/googletest)
 
 include(ExternalProject)
 set(CMAKE_CXX_STANDARD 11)
@@ -18,7 +18,6 @@ include(ExternalProject)
 ExternalProject_Add(oasis_test
   DEPENDS
     VTK
-    googletest
   SOURCE_DIR
     ${CMAKE_CURRENT_SOURCE_DIR}/test
   CMAKE_ARGS
