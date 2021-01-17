@@ -1,9 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
-
-project(oasis_test LANGUAGES CXX)
-
 enable_testing()
-
 include(FetchContent)
 
 FetchContent_Declare(
