@@ -28,11 +28,15 @@ endif()
 
 
 set(TEST_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/hello_world.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_voxel_slicing.cpp
+)
+
+set(TEST_ARTIFACT
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_artifact"
 )
 
 add_executable(oasis_test ${TEST_SOURCES})
 
-add_test(NAME oasis_test COMMAND generic_test)
+add_test(NAME oasis_test COMMAND TEST_ARTIFACT)
 
-target_link_libraries(oasis_test PUBLIC gtest_main)
+target_link_libraries(oasis_test PUBLIC gtest_main PRIVATE oasis_lib)
