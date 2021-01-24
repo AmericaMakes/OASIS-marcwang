@@ -1,6 +1,0 @@
-[submodule "thirdparty/vtk"]
-	path = thirdparty/vtk
-	url = https://github.com/Kitware/VTK.git
-[submodule "thirdparty/googletest"]
-	path = thirdparty/googletest
-	url = https://github.com/google/googletest.git
