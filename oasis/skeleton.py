@@ -27,11 +27,11 @@ def min_edge_length_time(v_1: np.array, v_2: np.array, vel_1: np.array, vel_2: n
     return t
 
 
-@jit(nopython=True)
+@jit(nopython=True, parallel=True)
 def edge_collapse(tri: np.array, vel: np.array) -> List[Tuple[float, np.array]]:
     edge_collapse = []
     pair_edges = [(0, 1), (1, 2), (2, 0)]
-    for i in range(3):
+    for i in prange(3):
         p = pair_edges[i]
         min_t = min_edge_length_time(
             tri[p[0]], tri[p[1]], vel[p[0]], vel[p[1]])
@@ -43,27 +43,58 @@ def edge_collapse(tri: np.array, vel: np.array) -> List[Tuple[float, np.array]]:
     return edge_collapse
 
 
-# @jit(nopython=True, parallel=True)
-def vertex_collision(tri_vert: np.array, vert_vel: np.array, tri_edges: np.array, edges_vel: np.array):
+#@jit(nopython=True, parallel=True)
+def vertex_collision(vert: np.array, vert_vel: np.array, wave_idx = []):
+    edges  = np.array([
+        [vert[1] - vert[0]],
+        [vert[2] - vert[1]],
+        [vert[0] - vert[2]]
+    ], dtype = float)
 
     signed_area = 0.5 * \
         LA.det(np.concatenate(
-            (tri_vert, np.array([0, 0, 0])[..., np.newaxis]), axis=1))
+            (vert, np.array([1, 1, 1])[..., np.newaxis]), axis=1))
 
-    edge_split = []
-    for i in range(3):
-        vert_i = tri_vert[i, ...]
+    split_event = []
+    flip_event = []
+    for i in prange(3):
+        vert_v_i = vert_vel[i, ...]
+        adj_e = edges[i-1]
         if i < 2:
-            opposite_edge = tri_edges[i+1, ...]
-            opposite_edge_vel = edges_vel[i+1, ...]
+            j = i+1
+            op_e = edges[j, ...]
         else:
-            opposite_edge = tri_edges[2-i, ...]
-            opposite_edge_vel = edges_vel[2-1, ...]
+            j = 2-i
+            op_e = edges[j, ...]
+        
 
-    return edge_split
+        if j in wave_idx:
+            if signed_area < 0:
+                dir = np.array((0,0, 1))
+            else:
+                dir = np.array((0,0, -1))
+            perp_dir = np.cross(op_e, dir)
+            opp_e_vel = (perp_dir/LA.norm(perp_dir))[0:2]
+        else:
+            opp_e_vel = np.array((0,0))
+        
+        dist = adj_e - np.dot(adj_e, op_e) / \
+            np.dot(op_e, op_e)*op_e
+
+        rel_speed = opp_e_vel - vert_v_i
+        t = np.dot(dist, dist)/np.dot(rel_speed, dist)
+
+        if t > 0 and (j in wave_idx):
+            split_event.append((t, (i, j)))
+        elif t > 0:
+            flip_event.append((t, (i, j)))
+
+    return split_event, flip_event
 
 
-def compute_edge_velocity(vert: np.array, holes: bool = False):
+@jit(nopython=True, parallel=True)
+def compute_edge_velocity(vert: np.array, holes: bool = False) -> np.array:
+    # assume last is identical to first
     edges = vert[1:, ...] - vert[0:-1, ...]
 
     if holes:
@@ -72,12 +103,19 @@ def compute_edge_velocity(vert: np.array, holes: bool = False):
         dir = np.array((0, 0, -1))
 
     perp_dir = np.cross(edges, dir)[..., 0:2]
-    perp_dir = perp_dir/LA.norm(perp_dir, axis=-1)[..., np.newaxis]
-    return perp_dir
+    normed_perp = np.zeros_like(perp_dir)
+    for i in prange(normed_perp.shape[0]):
+        normed_perp[i, ...] = perp_dir[i, ...]/LA.norm(perp_dir[i, ...])
+    # add first to last
+    return np.concatenate((normed_perp, np.expand_dims(normed_perp[0], axis=0)), axis=0)
 
 
-def compute_vertex_velocity(edge_vel: np.array):
-    return edge_vel[0:, ...] + np.roll(edge_vel, shift=1, axis=0)
+@jit(nopython=True)
+def compute_vertex_velocity(edge_vel: np.array) -> np.array:
+    # assume last is identical to first
+    edge_vel = edge_vel[0:-1, ...] + edge_vel[1:, ...]
+    # add first to last
+    return np.concatenate((edge_vel, np.expand_dims(edge_vel[0], axis=0)), axis=0)
 
 
 class Skeletonization():
@@ -103,7 +141,7 @@ class Skeletonization():
     def show_velocity_outer(self, scale=1.0):
         polygon = load_path(self.poly)
         vert_1 = np.array(self.poly.exterior.coords)[:-1]
-        vert_2 = vert_1 + self.shell_vert_vel*scale
+        vert_2 = vert_1 + self.shell_vert_vel[:-1]*scale
         lines = np.nan_to_num(np.stack((vert_1, vert_2), axis=1))
         shapely_lines = load_path(lines)
 
@@ -112,7 +150,7 @@ class Skeletonization():
     def show_velocity_inner(self, idx: int = 0, scale=1.0):
         polygon = load_path(self.poly)
         vert_1 = np.array(self.poly.interiors[idx].coords)[:-1]
-        vert_2 = vert_1 + self.holes_vert_vel[idx]*scale
+        vert_2 = vert_1 + self.holes_vert_vel[idx][:-1]*scale
         lines = np.nan_to_num(np.stack((vert_1, vert_2), axis=1))
         shapely_lines = load_path(lines)
         (shapely_lines + polygon).show()

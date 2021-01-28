@@ -1,7 +1,7 @@
 import unittest
 import trimesh
 
-from oasis.skeleton import Skeletonization, edge_collapse, vertex_collision
+from oasis.skeleton import Skeletonization, edge_collapse, vertex_collision, compute_edge_velocity
 
 import numpy as np
 import time
@@ -45,7 +45,7 @@ class SkeletonizationTest(unittest.TestCase):
         self.assertEqual(len(test), 1)
         self.assertEqual(test[0][0], 2.0)
     
-    def test_vertex_collision(self):
+    def test_vertex_split_collision(self):
         tri = np.array([
             [0, 0],
             [2, 5],
@@ -53,15 +53,34 @@ class SkeletonizationTest(unittest.TestCase):
         ], dtype=float)
 
         vel = np.array([
-            [0, 0],
+            [0, 1],
             [0,-1],
-            [0, 0]], dtype=float
+            [0, 1]], dtype=float
+        )
+
+        wave_idx = np.array([2])
+
+        test = vertex_collision(tri, vel, wave_idx)
+
+        self.assertEqual(len(test[0]), 1)
+        self.assertEqual(test[0][0][0], 2.5)
+    
+    def test_vertex_flip_collision(self):
+        tri = np.array([
+            [0, 0],
+            [2, 5],
+            [4, 0]
+        ], dtype=float)
+
+        vel = np.array([
+            [0, 1],
+            [0,-1],
+            [0, 1]], dtype=float
         )
 
         test = vertex_collision(tri, vel)
 
-        self.assertEqual(len(test), 1)
-        self.assertEqual(test[0][0], 5.0)
+        self.assertEqual(test[1][1][0], 5.0)
 
     def test_compute_wavefront(self):
         skel = Skeletonization(self.polygons_2d[0])
