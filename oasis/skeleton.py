@@ -88,9 +88,8 @@ def compute_vertex_velocity(vert : np.array, holes : bool = False):
     
     perp_dir = np.cross(edges, dir)[...,0:2]
     perp_dir = perp_dir/LA.norm(perp_dir, axis=-1)[...,np.newaxis]
-    perp_dir = np.concatenate((perp_dir, perp_dir[0][np.newaxis,...]), axis = 0)
     
-    return perp_dir[1:,...] + perp_dir[0:-1,...] 
+    return perp_dir[0:,...] + np.roll(perp_dir, shift = 1, axis = 0)
 
 class Skeletonization():
     def __init__(self, polygon: Polygon) -> None:
