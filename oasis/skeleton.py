@@ -85,9 +85,9 @@ def vertex_collision(vert: np.array, vert_vel: np.array, wave_idx = []):
         t = np.dot(dist, dist)/np.dot(rel_speed, dist)
 
         if t > 0 and (j in wave_idx):
-            split_event.append((t, (i, j)))
+            split_event.append((t, i))
         elif t > 0:
-            flip_event.append((t, (i, j)))
+            flip_event.append((t, i))
 
     return split_event, flip_event
 
