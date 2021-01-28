@@ -49,7 +49,7 @@ def vertex_collision(vert: np.array, vert_vel: np.array, wave_idx = []):
         [vert[1] - vert[0]],
         [vert[2] - vert[1]],
         [vert[0] - vert[2]]
-    ], dtype = float)
+    ], dtype = float).squeeze()
 
     signed_area = 0.5 * \
         LA.det(np.concatenate(
