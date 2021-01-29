@@ -52,15 +52,15 @@ class SkeletonizationTest(unittest.TestCase):
             [4, 0]
         ], dtype=float)
 
+        edges = np.roll(tri, shift = -1, axis = 0) - tri 
+        wavefront = np.array([False, False, True])
         vel = np.array([
             [0, 1],
             [0,-1],
             [0, 1]], dtype=float
         )
 
-        wave_idx = np.array([2])
-
-        test = vertex_collision(tri, vel, wave_idx)
+        test = vertex_collision(tri, vel, edges, wavefront)
 
         self.assertEqual(len(test[0]), 1)
         self.assertEqual(test[0][0][0], 2.5)
@@ -72,13 +72,16 @@ class SkeletonizationTest(unittest.TestCase):
             [4, 0]
         ], dtype=float)
 
+        edges = np.roll(tri, shift = -1, axis = 0) - tri 
+        wavefront = np.array([False, False, False])
+
         vel = np.array([
             [0, 1],
             [0,-1],
             [0, 1]], dtype=float
         )
 
-        test = vertex_collision(tri, vel)
+        test = vertex_collision(tri, vel, edges, wavefront)
 
         self.assertEqual(test[1][1][0], 5.0)
 
