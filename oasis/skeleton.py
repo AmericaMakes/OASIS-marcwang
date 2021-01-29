@@ -28,9 +28,10 @@ def min_edge_length_time(v_1: np.array, v_2: np.array, vel_1: np.array, vel_2: n
 
 
 @jit(nopython=True, parallel=True)
-def edge_collapse(tri: np.array, vel: np.array) -> List[Tuple[float, np.array]]:
+def edge_collapse(tri: np.array, vel: np.array) -> Tuple[float, Tuple[int, int]]:
     edge_collapse = []
     pair_edges = [(0, 1), (1, 2), (2, 0)]
+    edge_t = np.array([np.inf, np.inf, np.inf])
     for i in prange(3):
         p = pair_edges[i]
         min_t = min_edge_length_time(
@@ -39,8 +40,11 @@ def edge_collapse(tri: np.array, vel: np.array) -> List[Tuple[float, np.array]]:
             length = compute_edge_length(
                 min_t, tri[p[0]], tri[p[1]], vel[p[0]], vel[p[1]])
             if length < 1e-3:
+                edge_t[i] = min_t
                 edge_collapse.append((min_t, p))
-    return edge_collapse
+    
+    min_idx = np.argmin(edge_t)
+    return (edge_t[min_idx], pair_edges[min_idx])
 
 
 # @jit(nopython=True, parallel=True)

@@ -42,8 +42,9 @@ class SkeletonizationTest(unittest.TestCase):
         )
 
         test = edge_collapse(tri, vel)
-        self.assertEqual(len(test), 1)
-        self.assertEqual(test[0][0], 2.0)
+        self.assertEqual(test[0], 2.0)
+        self.assertEqual(test[1][0], 2)
+        self.assertEqual(test[1][1], 0)
     
     def test_vertex_split_collision(self):
         tri = np.array([
