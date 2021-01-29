@@ -48,13 +48,13 @@ def edge_collapse(tri: np.array, vel: np.array) -> Tuple[float, Tuple[int, int]]
 
 
 # @jit(nopython=True, parallel=True)
-def vertex_collision(vert: np.array, vert_vel: np.array, edges: np.array, wavefront: np.array):
+def vertex_collision(vert: np.array, vert_vel: np.array, edges: np.array, wavefront: np.array) -> Tuple[float, int, int]:
     signed_area = 0.5 * \
         LA.det(np.concatenate(
             (vert, np.array([1, 1, 1])[..., np.newaxis]), axis=1))
 
-    split_event = []
-    flip_event = []
+    edge_t = np.array([np.inf, np.inf, np.inf])
+    event_type = np.array([0,0,0])
     for i in prange(3):
         vert_v_i = vert_vel[i, ...]
         adj_e = edges[i-1]
@@ -82,11 +82,14 @@ def vertex_collision(vert: np.array, vert_vel: np.array, edges: np.array, wavefr
         t = np.dot(dist, dist)/np.dot(rel_speed, dist)
 
         if t > 0 and wavefront[j]:
-            split_event.append((t, i))
+            edge_t[i] = t
+            event_type[i] = 1 # split
         elif t > 0:
-            flip_event.append((t, i))
+            edge_t[i] = t
+            event_type[i] = 2 # flip
 
-    return split_event, flip_event
+    min_idx = np.argmin(edge_t)
+    return (edge_t[min_idx], min_idx, event_type[min_idx])
 
 
 @jit(nopython=True, parallel=True)

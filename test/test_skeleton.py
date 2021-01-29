@@ -63,8 +63,9 @@ class SkeletonizationTest(unittest.TestCase):
 
         test = vertex_collision(tri, vel, edges, wavefront)
 
-        self.assertEqual(len(test[0]), 1)
-        self.assertEqual(test[0][0][0], 2.5)
+        self.assertEqual(test[0], 2.5)
+        self.assertEqual(test[1], 1)
+        self.assertEqual(test[2], 1)
     
     def test_vertex_flip_collision(self):
         tri = np.array([
@@ -84,7 +85,9 @@ class SkeletonizationTest(unittest.TestCase):
 
         test = vertex_collision(tri, vel, edges, wavefront)
 
-        self.assertEqual(test[1][1][0], 5.0)
+        self.assertEqual(test[0], 5.0)
+        self.assertEqual(test[1], 1)
+        self.assertEqual(test[2], 2)
 
     def test_compute_wavefront(self):
         skel = Skeletonization(self.polygons_2d[0])
