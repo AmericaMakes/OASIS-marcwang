@@ -117,6 +117,43 @@ def compute_vertex_velocity(edge_vel: np.array) -> np.array:
     # add first to last
     return np.concatenate((edge_vel, np.expand_dims(edge_vel[0], axis=0)), axis=0)
 
+def compute_wavefront(vert : np.array, vel_vert : np.array, mesh : np.array, poly_loop : List[Tuple[int, int, int]]):
+    collapse_heap = []
+    for tri in mesh:
+        tri_v = vert[tri]
+        tri_v_vel = vert[tri]
+
+        shift_idx = np.roll(tri, shift=-1)
+        diff = np.abs(shift_idx - tri)
+
+        wavefront = np.zeros_like(tri, dtype = bool)
+        wavefront[diff == 1] = True
+        non_sequential = np.argwhere(wavefront != 1)
+
+        for idx in non_sequential:
+            idx_2 = shift_idx[idx]
+            idx_1 = tri[idx]
+            for loop in poly_loop:
+                idx_range = range(loop[0], loop[1])
+                if idx_2 in idx_range and idx_1 in idx_range:
+                    if np.abs(idx_2 - idx_1) == (loop[1]-2 - loop[0]):
+                        wavefront[idx] = True
+                    else:
+                        wavefront[idx] = False
+        tri_edge = np.roll(tri_v, shift = -1, axis = 0) - tri_v
+        e_collapse = edge_collapse(tri_v, tri_v_vel)
+        v_collision = vertex_collision(tri_v, tri_v_vel, tri_edge, wavefront)
+
+        if e_collapse[0] > v_collision[0]:
+            edge_id = e_collapse[1]
+            v_id_1 =  tri[edge_id]
+            v_id_2 = shift_idx[edge_id]
+            collapse_heap.append((e_collapse[0], (1, (v_id_1, v_id_2) )))
+        elif e_collapse[0] < v_collision[0]:
+            v_id = tri[e_collapse[1]]
+            collapse_heap.append((v_collision[0], (e_collapse[2], v_id)))
+    
+    return  collapse_heap    
 
 class Skeletonization():
     def __init__(self, polygon: Polygon) -> None:
@@ -158,6 +195,7 @@ class Skeletonization():
     def compute_wavefront(self, step: float = 0.1):
         self.mesh_v, self.mesh_f = triangulate_polygon(
             self.poly, engine='earcut')
+
 
     def show_mesh(self):
         fig = plt.figure()

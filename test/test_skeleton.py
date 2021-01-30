@@ -1,12 +1,45 @@
 import unittest
 import trimesh
 
-from oasis.skeleton import Skeletonization, edge_collapse, vertex_collision
+from oasis.skeleton import Skeletonization, compute_edge_velocity, compute_vertex_velocity, edge_collapse, vertex_collision, compute_wavefront
 from trimesh.creation import triangulate_polygon
 from shapely.geometry import Polygon
 import numpy as np
 
 import matplotlib.pyplot as plt
+import geopandas as gpd
+
+
+def plot_mesh(mesh_v, mesh_f):
+    fig, ax = plt.subplots(figsize=(10, 10))
+
+    def check_duplicate(ls, item):
+        in_list = False
+        for j in ls:
+            if np.all(j == item):
+                in_list = True
+        return in_list
+
+    added_v = []
+    for i, v in enumerate(mesh_v):
+        if not check_duplicate(added_v, v):
+            ax.annotate(i, xy=v, color='b')
+            added_v.append(v)
+        else:
+            ax.annotate(
+                "%d*" % i, xy=v, xytext=(v[0]-0.2, v[1]-0.2), color='r', arrowprops={'arrowstyle': 'simple'})
+
+    for i, tri in enumerate(mesh_f):
+        vert_v = Polygon(mesh_v[tri])
+        p = gpd.GeoSeries(vert_v)
+        p.plot(ax=ax)
+
+        centroid = vert_v.representative_point()
+
+        ax.annotate("%d \n (%d,%d,%d)" %
+                    (i, tri[0], tri[1], tri[2]), xy=(centroid.x, centroid.y))
+
+    return fig, ax
 
 
 class SkeletonizationTest(unittest.TestCase):
@@ -94,11 +127,18 @@ class SkeletonizationTest(unittest.TestCase):
     def test_compute_wavefront(self):
         poly = Polygon([(0, 0), (0, 1), (1.5, 3.5), (5.0, 6.0),
                         (7.0, 0.5), (4.0, 0.0), (3.5, 1.5), (3.0, 0.0)])
-        #plt.plot(*poly.exterior.xy)
-        #plt.show()
-        
+        # plt.plot(*poly.exterior.xy)
+        # plt.show()
         mesh_v, mesh_f = triangulate_polygon(
             poly, engine='earcut')
+
+        poly_loop = [(0,9,0)]
+        edge_vel = compute_edge_velocity(mesh_v)
+        vert_vel = compute_vertex_velocity(edge_vel)
+
+        plot_mesh(mesh_v, mesh_f)
+        plt.show()
+        compute_wavefront(mesh_v, vert_vel, mesh_f, poly_loop)
 
 
 if __name__ == '__main__':
