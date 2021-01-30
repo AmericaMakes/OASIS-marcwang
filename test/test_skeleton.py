@@ -1,7 +1,7 @@
 import unittest
 import trimesh
 
-from oasis.skeleton import Skeletonization, compute_edge_velocity, compute_vertex_velocity, edge_collapse, vertex_collision, compute_wavefront
+from oasis.skeleton import Skeletonization, compute_edge_velocity, compute_vertex_velocity, edge_collapse, vertex_collision, compute_wavefront, TriEvent
 from trimesh.creation import triangulate_polygon
 from shapely.geometry import Polygon
 import numpy as np
@@ -89,18 +89,18 @@ class SkeletonizationTest(unittest.TestCase):
         ], dtype=float)
 
         edges = np.roll(tri, shift=-1, axis=0) - tri
-        wavefront = np.array([False, False, True])
+        wavefront = np.array([True, False, False])
         vel = np.array([
             [0, 1],
             [0, 1],
             [0, -1]], dtype=float
         )
 
-        test = vertex_collision(tri, vel, edges, wavefront)
+        test = vertex_collision(vel, edges, wavefront)
 
         self.assertEqual(test[0], 2.5)
-        self.assertEqual(test[1], 1)
-        self.assertEqual(test[2], 1)
+        self.assertEqual(test[1], 2)
+        self.assertEqual(test[2], TriEvent.Split)
 
     def test_vertex_flip_collision(self):
         tri = np.array([
@@ -132,7 +132,7 @@ class SkeletonizationTest(unittest.TestCase):
         mesh_v, mesh_f = triangulate_polygon(
             poly, engine='earcut')
 
-        poly_loop = [(0,9,0)]
+        poly_loop = [(0, 9, 0)]
         edge_vel = compute_edge_velocity(mesh_v)
         vert_vel = compute_vertex_velocity(edge_vel)
 

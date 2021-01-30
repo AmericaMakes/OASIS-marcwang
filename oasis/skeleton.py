@@ -3,17 +3,22 @@ import numpy as np
 from numpy import linalg as LA
 
 from shapely.geometry.polygon import Polygon, orient
-from shapely.coords import CoordinateSequence
 from trimesh.creation import triangulate_polygon
 from trimesh.path.exchange.load import load_path
 
 from trimesh.path.simplify import merge_colinear
-from scipy.optimize import minimize
 
-from typing import NewType, Tuple, List
+from typing import Tuple, List
 
 from numba import jit, prange
 
+from enum import IntEnum
+
+class TriEvent(IntEnum):
+    No = 0
+    Edge = 1
+    Split = 2
+    Flip = 3
 
 @jit(nopython=True)
 def compute_edge_length(t: float, v_1: np.array, v_2: np.array, vel_1: np.array, vel_2: np.array) -> float:
@@ -47,29 +52,21 @@ def edge_collapse(tri: np.array, vel: np.array) -> Tuple[float, Tuple[int, int]]
     return (edge_t[min_idx], pair_edges[min_idx])
 
 
-@jit(nopython=True)
-def vertex_collision(vert: np.array, vert_vel: np.array, edges: np.array, wavefront: np.array) -> Tuple[float, int, int]:
-    signed_area = 0.5 * \
-        LA.det(np.concatenate(
-            (vert, np.expand_dims(np.array([1.0, 1.0, 1.0]), axis = -1)), axis=1))
-
+#@jit(nopython=True)
+def vertex_collision(vert_vel: np.array, edges: np.array, wavefront: np.array) -> Tuple[float, int, int]:
     edge_t = np.array([np.inf, np.inf, np.inf])
     event_type = np.array([0,0,0])
     for i in range(3):
         vert_v_i = vert_vel[i, ...]
         adj_e = edges[i-1]
-        if i < 2:
-            j = i+1
-            op_e = edges[j, ...]
-        else:
-            j = 2-i
-            op_e = edges[j, ...]
+        
+        j = (i + 1) % 3
+        op_e = edges[j, ...]
 
         if wavefront[j]:
-            if signed_area < 0:
-                dir = np.array((0.0, 0.0, 1.0))
-            else:
-                dir = np.array((0.0, 0.0, -1.0))
+            # assume tri is always ccw ordered
+            dir = np.array((0.0, 0.0, - 1.0))
+            #perp points inward
             perp_dir = np.cross(op_e, dir)
             opp_e_vel = (perp_dir/LA.norm(perp_dir))[0:2]
         else:
@@ -83,10 +80,10 @@ def vertex_collision(vert: np.array, vert_vel: np.array, edges: np.array, wavefr
 
         if t > 0 and wavefront[j]:
             edge_t[i] = t
-            event_type[i] = 1 # split
+            event_type[i] = TriEvent.Split # split
         elif t > 0:
             edge_t[i] = t
-            event_type[i] = 2 # flip
+            event_type[i] = TriEvent.Flip # flip
 
     min_idx = np.argmin(edge_t)
     return (edge_t[min_idx], min_idx, event_type[min_idx])
@@ -142,7 +139,7 @@ def compute_wavefront(vert : np.array, vel_vert : np.array, mesh : np.array, pol
                         wavefront[idx] = False
         tri_edge = np.roll(tri_v, shift = -1, axis = 0) - tri_v
         e_collapse = edge_collapse(tri_v, tri_v_vel)
-        v_collision = vertex_collision(tri_v, tri_v_vel, tri_edge, wavefront)
+        v_collision = vertex_collision(tri_v_vel, tri_edge, wavefront)
 
         if e_collapse[0] > v_collision[0]:
             edge_id = e_collapse[1]
