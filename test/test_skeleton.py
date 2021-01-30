@@ -118,11 +118,11 @@ class SkeletonizationTest(unittest.TestCase):
             [0, -1]], dtype=float
         )
 
-        test = vertex_collision(tri, vel, edges, wavefront)
+        test = vertex_collision(vel, edges, wavefront)
 
         self.assertEqual(test[0], 5.0)
-        self.assertEqual(test[1], 1)
-        self.assertEqual(test[2], 2)
+        self.assertEqual(test[1], 2)
+        self.assertEqual(test[2], TriEvent.Flip)
 
     def test_compute_wavefront(self):
         poly = Polygon([(0, 0), (0, 1), (1.5, 3.5), (5.0, 6.0),
