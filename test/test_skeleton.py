@@ -66,34 +66,34 @@ class SkeletonizationTest(unittest.TestCase):
     def test_edge_collapse(self):
         tri = np.array([
             [0, 0],
-            [2, 5],
-            [4, 0]
+            [4, 0],
+            [2, 5]
         ], dtype=float)
 
         vel = np.array([
             [1, 0],
-            [0, 0],
-            [-1, 0]], dtype=float
+            [-1, 0],
+            [0, 0]], dtype=float
         )
 
         test = edge_collapse(tri, vel)
         self.assertEqual(test[0], 2.0)
-        self.assertEqual(test[1][0], 2)
-        self.assertEqual(test[1][1], 0)
+        self.assertEqual(test[1][0], 0)
+        self.assertEqual(test[1][1], 1)
 
     def test_vertex_split_collision(self):
         tri = np.array([
             [0, 0],
-            [2, 5],
-            [4, 0]
+            [4, 0],
+            [2, 5]
         ], dtype=float)
 
         edges = np.roll(tri, shift=-1, axis=0) - tri
         wavefront = np.array([False, False, True])
         vel = np.array([
             [0, 1],
-            [0, -1],
-            [0, 1]], dtype=float
+            [0, 1],
+            [0, -1]], dtype=float
         )
 
         test = vertex_collision(tri, vel, edges, wavefront)
@@ -105,8 +105,8 @@ class SkeletonizationTest(unittest.TestCase):
     def test_vertex_flip_collision(self):
         tri = np.array([
             [0, 0],
+            [4, 0],
             [2, 5],
-            [4, 0]
         ], dtype=float)
 
         edges = np.roll(tri, shift=-1, axis=0) - tri
@@ -114,8 +114,8 @@ class SkeletonizationTest(unittest.TestCase):
 
         vel = np.array([
             [0, 1],
-            [0, -1],
-            [0, 1]], dtype=float
+            [0, 1],
+            [0, -1]], dtype=float
         )
 
         test = vertex_collision(tri, vel, edges, wavefront)
