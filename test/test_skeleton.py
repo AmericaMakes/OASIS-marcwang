@@ -1,13 +1,15 @@
 import unittest
 import trimesh
 
-from oasis.skeleton import Skeletonization, compute_edge_velocity, compute_vertex_velocity, edge_collapse, vertex_collision, compute_wavefront, TriEvent
+from oasis.skeleton import compute_edge_velocity, compute_vertex_velocity, edge_collapse, vertex_collision, compute_wavefront, TriEvent
 from trimesh.creation import triangulate_polygon
 from shapely.geometry import Polygon
 import numpy as np
 
 import matplotlib.pyplot as plt
 import geopandas as gpd
+
+import heapq as hq
 
 
 def plot_mesh(mesh_v, mesh_f):
@@ -59,9 +61,13 @@ class SkeletonizationTest(unittest.TestCase):
         self.polygons_2d = slice_2d.polygons_full
 
     def test_generate_bisector(self):
-        skel = Skeletonization(self.polygons_2d[0])
-        skel.show_velocity_outer(0.5)
-        skel.show_velocity_inner(0, 0.1)
+        square = Polygon([(0,0), (5,0), (5,5), (0,5)])
+        e_vel = compute_edge_velocity(np.array(square.exterior.coords))
+        vel = compute_vertex_velocity(e_vel)
+        self.assertTrue(np.all(vel[0] == np.array([1,1])))
+        self.assertTrue(np.all(vel[1] == np.array([-1,1])))
+        self.assertTrue(np.all(vel[2] == np.array([-1,-1])))
+        self.assertTrue(np.all(vel[3] == np.array([1,-1])))
 
     def test_edge_collapse(self):
         tri = np.array([
@@ -125,9 +131,8 @@ class SkeletonizationTest(unittest.TestCase):
         self.assertEqual(test[2], TriEvent.Flip)
 
     def test_compute_wavefront(self):
-        poly = Polygon([(0, 0), (0, 1), (1.5, 3.5), (5.0, 6.0),
-                        (7.0, 0.5), (4.0, 0.0), (3.5, 1.5), (3.0, 0.0)])
-        # plt.plot(*poly.exterior.xy)
+        poly = Polygon([(3.0, 0.0), (3.5, 1.5), (4.0, 0.0),
+                        (7.0, 0.5), (5.0, 6.0), (1.5, 3.5), (0, 1), (0, 0)])
         # plt.show()
         mesh_v, mesh_f = triangulate_polygon(
             poly, engine='earcut')
@@ -138,7 +143,8 @@ class SkeletonizationTest(unittest.TestCase):
 
         plot_mesh(mesh_v, mesh_f)
         plt.show()
-        compute_wavefront(mesh_v, vert_vel, mesh_f, poly_loop)
+        heap_list = compute_wavefront(mesh_v, vert_vel, mesh_f, poly_loop)
+        print(heap_list)
 
 
 if __name__ == '__main__':
