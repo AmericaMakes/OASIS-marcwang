@@ -128,36 +128,32 @@ def compute_vertex_velocity(edge_vel: np.array) -> np.array:
     # add first to last
     return np.concatenate((edge_vel, np.expand_dims(edge_vel[0], axis=0)), axis=0)
 
-def _check_if_node_last(g : nx.DiGraph, v1_idx : int, v2_idx : int, poly_loop: List[Tuple[int, int, int]]):
-    if not g.has_node(v1_idx):
-        l_id = g.nodes[v2_idx]['l_id']
-        return poly_loop[l_id][0]
-    else:
-        return v1_idx
-
 def create_graph(mesh_v: np.array, vel_v: np.array, mesh_f: np.array, poly_loop: List[Tuple[int, int, int]]):
     g = nx.DiGraph()
     m_g = nx.Graph()
+
+    d_map = {}
     for l_id, loop in enumerate(poly_loop):
         interval = range(loop[0], loop[1])
         hole = loop[2]
-        ls_nodes = [(i, {'coord': mesh_v[i, ...],
+        ls_nodes = [(i, { 't' : 0, 'coord': mesh_v[i, ...],
                          'velocity': vel_v[i, ...], 'l_id': l_id}) for i in interval]
         g.add_nodes_from(ls_nodes)
-
+        
         ls_edges = [(i, (i+1) % loop[1] + loop[0]*(int((i+1)/loop[1])),
                      {'hole': hole, 'wave': True, 'l_id': l_id}) for i in interval]
         g.add_edges_from(ls_edges)
 
+        d_map[loop[1]] = loop[0]
+
     for t_idx, tri in enumerate(mesh_f):
         m_g.add_node(t_idx)
-        n_tri_v = np.zeros(3, dtype = int)
+
+        tri = np.array([d_map[i] if i in d_map.keys() else i for i in tri], dtype = int)
+        m_g.nodes[t_idx]['vertex'] = tri
         for i in range(3):
             v_1_id = tri[i]
             v_2_id = tri[(i+1) % 3]
-
-            v_1_id = _check_if_node_last(g, v_1_id, v_2_id, poly_loop)
-            v_2_id = _check_if_node_last(g, v_2_id, v_1_id, poly_loop)
 
             if g.has_edge(v_1_id, v_2_id):
                 g[v_1_id][v_2_id]['t_id'] = t_idx
@@ -165,14 +161,12 @@ def create_graph(mesh_v: np.array, vel_v: np.array, mesh_f: np.array, poly_loop:
                 g.add_edge(v_1_id, v_2_id)
                 g[v_1_id][v_2_id]['wave'] = False
                 g[v_1_id][v_2_id]['t_id'] = t_idx
+                g[v_1_id][v_2_id]['hole'] = False
 
             if g.has_edge(v_2_id, v_1_id):
                 if not g[v_2_id][v_1_id]['wave']:
                     adj_t_idx = g[v_2_id][v_1_id]['t_id']
                     m_g.add_edge(t_idx, adj_t_idx)
-            
-            n_tri_v[i] = v_1_id
-        m_g.nodes[t_idx]['vertex'] = n_tri_v
 
     return g, m_g
 
@@ -210,19 +204,56 @@ def compute_wavefront(g_v : nx.DiGraph, g_m : nx.Graph):
                 event_list.append(
                     (TriEvent.Multi, ((TriEvent.Edge, edge_id), (v_collision[2], v_id))))
 
-    processed_event = []  # (tri left, t collapse, sorted tri_idx)
+    processed_flip_event = []  # (tri left, t collapse, sorted tri_idx)
+
+    st_kel = nx.DiGraph()
 
     while len(collapse_heap) > 0:
         elem = hq.heappop(collapse_heap)
+        t_event = elem[0]
         event = event_list[elem[1]]
         tri_idx = g_m[elem[1]]['vertex']
 
         if event[0] == TriEvent.Edge:
             v_pair = event[1]
             g_v = nx.contracted_edge(g_v, v_pair)
-            
+            init_pos = g_v[v_pair[0]]['coord']
+            init_vel_1 = g_v[v_pair[0]]['velocity']
+            init_vel_2 = g_v[v_pair[1]]['velocity']
+
+            v_1 = g_v[v_pair[0]]['coord']
+            v_2 = g_v[v_pair[1]]['coord']
+            edge_dir = v_1 - v_2
+            perp_dir = np.cross(edge_dir, np.array((0,0,1)))[0:2]
+            perp_dir = perp_dir/LA.norm(perp_dir)
+            new_id = max(g_v.nodes) + 1
+            g_v = nx.relabel_nodes(g_v, {v_pair[0] : new_id})
+
+            g_v[new_id]['coord'] = init_pos + init_vel_1*t_event
+            g_v[new_id]['t'] = t_event
+            g_v[new_id]['velocity'] = init_vel_1 + init_vel_2 - 2*perp_dir
+            # TODO update mesh graph
         elif event[0] == TriEvent.Split:
-            pass
+            v_id = event[1]
+            tri_idx_v = g_m[event[2]]['vertex']
+            tri_left = tri_idx_v[tri_idx_v != v_id]
+            g_v.remove_edge(tri_left[0], tri_left[1])
+            # TODO update mesh graph
+        elif event[0] == TriEvent.Flip:
+            v_id = event[1]
+            tri_idx_v = g_m[event[2]]['vertex']
+            tri_left = tri_idx_v[tri_idx_v != v_id]
+            g_v.remove_edge(tri_left[0], tri_left[1])
+            op_tri = g_v[tri_left[1]][tri_left[0]]['t_id']
+
+            op_tri_idx_v = g_m[op_tri]['vertex']
+            op_tri_left = tri_idx_v[op_tri_idx_v != tri_left ]
+
+            g_v.add_edge(v_id, op_tri_left)
+            g_v.add_edge(op_tri_left, v_id)
+
+            # TODO update mesh graph
+            # TODO add to history and heap
 
     return collapse_heap
 
