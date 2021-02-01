@@ -3,9 +3,6 @@ import trimesh
 
 import oasis.clipper_offsetting as clo
 
-import matplotlib.pyplot as plt
-
-from trimesh.path import polygons
 
 class SkeletonizationTest(unittest.TestCase):
 
@@ -22,15 +19,14 @@ class SkeletonizationTest(unittest.TestCase):
 
         slice_2d.merge_vertices()
         self.polygons_2d = slice_2d.polygons_full
-    
 
     def test_offsetting(self):
 
         clo_obj = clo.ClipperOffsetting(self.polygons_2d[0])
 
-        offsets = clo_obj.get_offset( 1.0, 3)
+        offsets = clo_obj.get_offset(1.0, 3)
         outer_path = trimesh.load_path(self.polygons_2d[0])
-        #outer_path.show()
+        # outer_path.show()
 
         ls_path = [trimesh.load_path(poly) for poly in offsets]
 
@@ -38,5 +34,3 @@ class SkeletonizationTest(unittest.TestCase):
             outer_path += p
 
         outer_path.show()
-
-        
