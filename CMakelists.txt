@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.19)
+project(oasis_lib)
+
+add_subdirectory(thirdparty/pybind11)
+add_subdirectory(thirdparty/voro++)
+
+pybind11_add_module(oasis_lib lib/single_cell.cc)
