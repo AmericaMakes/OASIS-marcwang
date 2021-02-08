@@ -3,5 +3,30 @@ project(oasis_lib)
 
 add_subdirectory(thirdparty/pybind11)
 add_subdirectory(thirdparty/voro++)
+add_subdirectory(thirdparty/catch2)
 
-pybind11_add_module(oasis_lib lib/single_cell.cc)
+set(LIB_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/src/voronoi_generator.cpp
+)
+
+set(LIB_SRC_WRAP
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/src/voro_wrapper.cpp
+)
+
+pybind11_add_module(OasisLib ${LIB_SRC} ${LIB_SRC_WRAP})
+
+target_link_libraries(OasisLib PUBLIC voro_lib)
+target_include_directories(OasisLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/include) 
+
+######### TEST #############
+SET(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
+SET(TEST_SRC ${TEST_DIR}/test_voronoi.cpp
+             ${TEST_DIR}/test_main.cpp)
+
+add_executable(OasisLibtest ${TEST_SRC} ${LIB_SRC})
+target_include_directories(OasisLibtest PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/include)
+target_link_libraries(OasisLibtest PUBLIC Catch2::Catch2)
+
+enable_testing()
+
+add_test(NAME OasisLibtest COMMAND RunUnitTest)
