@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "C:\\Users\\m384wang\\Anaconda3\\envs\\pyslm\\python.exe",
+    "python.pythonPath": "C:\\Users\\m384wang\\Anaconda3\\envs\\oasis\\python.exe",
     "python.linting.enabled": true,
     "python.testing.unittestArgs": [
         "-v",

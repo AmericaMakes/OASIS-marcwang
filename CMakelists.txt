@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.19)
 project(oasis_lib)
 
+find_package(Catch2)
+
 add_subdirectory(thirdparty/pybind11)
 add_subdirectory(thirdparty/voro++)
-add_subdirectory(thirdparty/catch2)
 
 set(LIB_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/src/voronoi_generator.cpp
@@ -24,8 +25,10 @@ SET(TEST_SRC ${TEST_DIR}/test_voronoi.cpp
              ${TEST_DIR}/test_main.cpp)
 
 add_executable(OasisLibtest ${TEST_SRC} ${LIB_SRC})
-target_include_directories(OasisLibtest PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/include)
-target_link_libraries(OasisLibtest PUBLIC Catch2::Catch2)
+target_include_directories(OasisLibtest PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/include
+)
+target_link_libraries(OasisLibtest Catch2::Catch2 voro_lib)
 
 enable_testing()
 
