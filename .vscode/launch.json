@@ -17,7 +17,7 @@
             "program" : "setup.py",
             "console": "integratedTerminal",
             "cwd" : "${workspaceFolder}",
-            "args": ["build_ext", "--debug", "build"]
+            "args": ["build_ext", "--debug", "develop"]
         }
     ]
 }
