@@ -17,4 +17,10 @@ COPY ./thirdparty/geogram /tmp/geogram
 RUN cd /tmp/geogram && \
     sh -f configure.sh && \
     cd build/Linux64-gcc-dynamic-Release && \
-    make . install
+    make . install -j4
+
+RUN rm -rf /tmp/geogram
+
+COPY ./dependencies.yml tmp/
+RUN conda env update --file "tmp/dependencies.yml"
+RUN rm -f tmp/dependencies.yml

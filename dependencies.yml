@@ -1,0 +1,12 @@
+name: base
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - numpy
+  - scipy
+  - pandas
+  - conda-forge::openpyxl
+  - conda-forge::trimesh
+  - conda-forge::pyclipper
+  - conda-forge::pylint

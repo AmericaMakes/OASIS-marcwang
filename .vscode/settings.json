@@ -1,14 +1,15 @@
 {
-    "python.pythonPath": "C:\\Users\\m384wang\\Anaconda3\\envs\\pyslm\\python.exe",
+    "python.pythonPath": "/opt/conda/bin/python",
     "python.linting.enabled": true,
     "python.testing.unittestArgs": [
         "-v",
         "-s",
         "./test",
         "-p",
-        "test*.py"
+        "test_*.py"
     ],
     "python.testing.pytestEnabled": false,
     "python.testing.nosetestsEnabled": false,
-    "python.testing.unittestEnabled": true
+    "python.testing.unittestEnabled": true,
+    "python.linting.pylintEnabled": true
 }

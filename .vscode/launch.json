@@ -9,6 +9,15 @@
             "type": "python",
             "request": "test",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Build Library",
+            "type": "python",
+            "request": "launch",
+            "program" : "setup.py",
+            "console": "integratedTerminal",
+            "cwd" : "${workspaceFolder}",
+            "args": ["build_ext", "--debug", "build"]
         }
     ]
 }
