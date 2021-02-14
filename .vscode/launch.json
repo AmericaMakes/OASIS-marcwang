@@ -18,6 +18,15 @@
             "console": "integratedTerminal",
             "cwd" : "${workspaceFolder}",
             "args": ["build_ext", "--debug", "develop"]
+        },
+        {
+            "name": "Clean Library",
+            "type": "python",
+            "request": "launch",
+            "program" : "setup.py",
+            "console": "integratedTerminal",
+            "cwd" : "${workspaceFolder}",
+            "args": ["clean"]
         }
     ]
 }

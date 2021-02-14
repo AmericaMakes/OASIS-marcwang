@@ -4,7 +4,9 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/include/**"
+                "/usr/local/include/**",
+                "/opt/conda/include/**",
+                
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

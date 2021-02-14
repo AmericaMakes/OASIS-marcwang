@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13.4)
 project(oasis_lib)
 
+set(CMAKE_CXX_STANDARD 11)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/geogram/cmake)
 find_package(Catch2 REQUIRED)
 find_package(Geogram REQUIRED)
@@ -12,7 +14,7 @@ set(LIB_SRC
 )
 
 set(LIB_SRC_WRAP
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/src/wrapper_voronoi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/src/wrapper_mesh.cpp
 )
 
 pybind11_add_module(OasisLib ${LIB_SRC} ${LIB_SRC_WRAP})

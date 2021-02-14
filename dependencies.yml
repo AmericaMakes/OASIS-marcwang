@@ -10,3 +10,5 @@ dependencies:
   - conda-forge::trimesh
   - conda-forge::pyclipper
   - conda-forge::pylint
+  - conda-forge::shapely
+  - conda-forge::networkx
