@@ -2,14 +2,15 @@ from continuumio/miniconda3:latest
 
 RUN apt-get update && apt-get install -y \
     build-essential \
-    cmake
+    cmake \
+    gdb
 
 COPY ./thirdparty/catch2 /tmp/catch2
 RUN cd /tmp/catch2 
 RUN cd /tmp/catch2 && \
     cmake -Bbin -H. -DBUILD_TESTING=OFF && \
     cd bin &&\
-    make . install
+    make . install -j4
 
 RUN rm -rf /tmp/catch2
 
