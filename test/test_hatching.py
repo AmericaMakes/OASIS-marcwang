@@ -6,7 +6,7 @@ from shapely.affinity import translate
 import oasis.hatching as ohat
 from oasis.util import clean_polygon
 
-class SkeletonizationTest(unittest.TestCase):
+class HatchingTest(unittest.TestCase):
 
     def setUp(self):
         stl_path = './test/test_artifact/3DBenchy.stl'
@@ -39,3 +39,6 @@ class SkeletonizationTest(unittest.TestCase):
         poly_path = trimesh.load_path(cleaned_poly)
         poly_path += trimesh.load_path(trimmed_hatch)
         poly_path.show()
+
+if __name__ == '__main__':
+    unittest.main()

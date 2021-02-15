@@ -34,3 +34,6 @@ class SkeletonizationTest(unittest.TestCase):
             outer_path += p
 
         outer_path.show()
+
+if __name__ == '__main__':
+    unittest.main()
