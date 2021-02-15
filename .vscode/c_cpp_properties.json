@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**",
                 "/usr/local/include/**",
                 "/opt/conda/include/**",
-                
+                "${workspaceFolder}/thirdparty/pybind11/include/**"                
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
