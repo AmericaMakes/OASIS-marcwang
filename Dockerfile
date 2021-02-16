@@ -4,7 +4,8 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     gdb \
-    git-lfs
+    git-lfs \
+    libboost-all-dev
 
 COPY ./thirdparty/catch2 /tmp/catch2
 RUN cd /tmp/catch2 && \
