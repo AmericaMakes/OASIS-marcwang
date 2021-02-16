@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y \
     gdb
 
 COPY ./thirdparty/catch2 /tmp/catch2
-RUN cd /tmp/catch2 
 RUN cd /tmp/catch2 && \
     cmake -Bbin -H. -DBUILD_TESTING=OFF && \
     cd bin &&\
@@ -21,6 +20,14 @@ RUN cd /tmp/geogram && \
     make . install -j4
 
 RUN rm -rf /tmp/geogram
+
+COPY ./thirdparty/pybind11 /tmp/pybind11
+RUN cd /tmp/pybind11 && \
+    cmake -Bbin && \
+    cd bin &&\
+    make . install -j4
+
+RUN rm -rf /tmp/pybind11 
 
 COPY ./dependencies.yml tmp/
 RUN conda env update --file "tmp/dependencies.yml"
