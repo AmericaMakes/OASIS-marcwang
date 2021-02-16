@@ -19,7 +19,7 @@ set(LIB_SRC_WRAP
 pybind11_add_module(OasisLib ${LIB_SRC} ${LIB_SRC_WRAP})
 
 target_link_libraries(OasisLib PUBLIC Geogram::geogram)
-target_include_directories(OasisLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/include) 
+target_include_directories(OasisLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/OasisLib/include) 
 
 ######### TEST #############
 SET(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
