@@ -5,6 +5,7 @@
 #include <geogram/mesh/mesh_tetrahedralize.h>
 #include <geogram/voronoi/CVT.h>
 #include <geogram/basic/logger.h>
+#include <geogram/mesh/mesh_remesh.h>
 
 #include "GeogramBase.h"
 #include "GeoGramVoronoi.h"
@@ -45,7 +46,12 @@ PYBIND11_MODULE(OasisLib, m)
         .def("get_scalar_attributes", &Mesh::get_scalar_attributes)
         .def("get_vector_attributes", &Mesh::get_vector_attributes,
              py::arg("max_dim") = 0)
-        .def("nb_subelements_types", &Mesh::nb_subelements_types);
+        .def("nb_subelements_types", &Mesh::nb_subelements_types)
+        .def_readonly("cells", &Mesh::cells);
+    
+    py::class_<MeshCells>(m, "GeoMeshCells")
+        .def(py::init<Mesh &>())
+        .def("compute_borders", py::overload_cast<>(&MeshCells::compute_borders));
 
     py::enum_<MeshAttributesFlags>(m, "MeshAttributesFlags", py::arithmetic())
         .value("MESH_NO_ATTRIBUTES", MeshAttributesFlags::MESH_NO_ATTRIBUTES)
@@ -58,6 +64,7 @@ PYBIND11_MODULE(OasisLib, m)
         .export_values();
 
     py::class_<MeshIOFlags>(m, "MeshIOFlags")
+        .def(py::init<>())
         .def("dimension", &MeshIOFlags::dimension)
         .def("attributes", &MeshIOFlags::attributes)
         .def("set_attributes", &MeshIOFlags::set_attributes)
@@ -94,15 +101,17 @@ PYBIND11_MODULE(OasisLib, m)
     m.def("mesh_tetrahedralize", &mesh_tetrahedralize, 
         py::arg("M"), py::arg("preprocess") = true, py::arg("refine") = true, 
         py::arg("quality") = 2.0, py::arg("keep_regions") = false);
-
-    py::class_<CentroidalVoronoiTesselation>(m, "CentroidalVoronoiTesselation")
-        .def(py::init<Mesh *, coord_index_t, const std::string &>(),
-            py::arg("mesh"), py::arg("dimension") = 0, py::arg("delaunay") = "default")
-        .def("compute_initial_sampling", &CentroidalVoronoiTesselation::compute_initial_sampling)
-        .def("Lloyd_iterations", &CentroidalVoronoiTesselation::Lloyd_iterations)
-        .def("Newton_iterations", &CentroidalVoronoiTesselation::Newton_iterations, 
-            py::arg("nb_iter"), py::arg("index_t") = 7)
-        .def("mesh", &CentroidalVoronoiTesselation::mesh);
     
-    m.def("polyhedral_mesher", &polyhedral_mesher);
+    m.def("polyhedral_mesher", &polyhedral_mesher,
+        py::arg("M_in"), py::arg("M_out"), 
+        py::arg("ng_points") = 1000, py::arg("simplify") = "tets_voronoi_boundary",
+        py::arg("angle_threshold") = 0.001, py::arg("nd_iter_lloyd") = 5,
+        py::arg("nb_iter_newton") = 30, py::arg("tessallate_non_convex") = false,
+        py::arg("poly_cell_shrinks") = 0.0, py::arg("generate_ids") = true);
+
+    m.def("remesh_smooth", &remesh_smooth, 
+        py::arg("M_in"), py::arg("M_out"), 
+        py::arg("nb_points") = 30000, py::arg("coord_index_t") = 0,
+        py::arg("nb_Lloyd_iter") = 5, py::arg("nb_Newton_iter") = 30,
+        py::arg("Newton_m") = 7);
 }
