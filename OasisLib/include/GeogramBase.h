@@ -1,5 +1,4 @@
 /* This file is part of PyMesh. Copyright (c) 2016 by Qingnan Zhou */
-#pragma once
 #ifndef GEOGRAMBASE_H
 #define GEOGRAMBASE_H
 
@@ -19,23 +18,25 @@ using GeoMeshPtr = std::shared_ptr<Mesh>;
  * Base class for all GeoGram wrappers.
  * It takes care of initializing GeoGram environment.
  */
-class GeogramBase {
-    public:
-        GeogramBase() {
-            initialize();
-            CmdLine::import_arg_group("standard");
-            CmdLine::import_arg_group("pre");
-            CmdLine::import_arg_group("remesh");
-            CmdLine::import_arg_group("algo");
-            CmdLine::import_arg_group("post");
-            CmdLine::import_arg_group("opt");
-            CmdLine::import_arg_group("co3ne");
-            CmdLine::import_arg_group("tet");
-            CmdLine::import_arg_group("poly");
-            Logger::instance()->set_pretty(true);
-        }
+namespace OasisLib{
 
-        virtual ~GeogramBase() = default;
-};
+    class GeogramBase {
+        public:
+            GeogramBase() {
+                initialize();
+                CmdLine::import_arg_group("standard");
+                CmdLine::import_arg_group("pre");
+                CmdLine::import_arg_group("remesh");
+                CmdLine::import_arg_group("algo");
+                CmdLine::import_arg_group("post");
+                CmdLine::import_arg_group("opt");
+                CmdLine::import_arg_group("co3ne");
+                CmdLine::import_arg_group("tet");
+                CmdLine::import_arg_group("poly");
+                Logger::instance()->set_pretty(true);
+            }
 
+            virtual ~GeogramBase() = default;
+    };
+}
 #endif
