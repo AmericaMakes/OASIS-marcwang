@@ -3,7 +3,8 @@ from continuumio/miniconda3:latest
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
-    gdb
+    gdb \
+    git-lfs
 
 COPY ./thirdparty/catch2 /tmp/catch2
 RUN cd /tmp/catch2 && \
