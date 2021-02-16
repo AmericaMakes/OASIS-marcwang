@@ -6,15 +6,14 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/geogram/cmake)
 find_package(Catch2 REQUIRED)
 find_package(Geogram REQUIRED)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/pybind11)
+find_package(pybind11 REQUIRED)
 
 set(LIB_SRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/src/GeoGramVoronoi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/OasisLib/src/GeoGramVoronoi.cpp
 )
 
 set(LIB_SRC_WRAP
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/src/wrapper_mesh.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/OasisLib/src/wrap_geogram.cpp
 )
 
 pybind11_add_module(OasisLib ${LIB_SRC} ${LIB_SRC_WRAP})
