@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/lib/include",
+                "${workspaceFolder}/OasisLib/include",
                 "/usr/local/include/**",
                 "/opt/conda/include/**"
             ],
