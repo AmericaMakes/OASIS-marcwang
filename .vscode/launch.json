@@ -5,6 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/OasisLibtest",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "test",
@@ -14,21 +32,26 @@
             "name": "Build Library",
             "type": "python",
             "request": "launch",
-            "program" : "setup.py",
+            "program": "setup.py",
             "console": "integratedTerminal",
-            "cwd" : "${workspaceFolder}",
-            "args": ["build_ext", "--debug", "develop"]
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "build_ext",
+                "--debug",
+                "develop"
+            ]
         },
         {
             "name": "Clean Library",
             "type": "python",
             "request": "launch",
-            "program" : "setup.py",
+            "program": "setup.py",
             "console": "integratedTerminal",
-            "cwd" : "${workspaceFolder}",
-            "args": ["clean"]
-        }
-        ,
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "clean"
+            ]
+        },
         {
             "name": "(gdb) Attach",
             "type": "cppdbg",
