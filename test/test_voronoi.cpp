@@ -7,6 +7,7 @@
 #include <geogram/mesh/mesh_remesh.h>
 #include <geogram/mesh/mesh_tetrahedralize.h>
 
+#include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
 
 #include "MeshGraph.h"
@@ -16,6 +17,7 @@
 #include <geogram/basic/common.h>
 
 using namespace GEO;
+namespace bgi = boost::geometry::index;
 
 TEST_CASE("Test slice query", "[Query]"){
     std::string path("./test_artifact/3DBenchy.stl");
@@ -36,13 +38,14 @@ TEST_CASE("Test slice query", "[Query]"){
     REQUIRE(mesh_load(path, m_in));
     mesh_repair(m_in);
 
-    index_t nb_points = 1000;
+    index_t nb_points = 10000;
     remesh_smooth(m_in, m_smooth, nb_points);
 
     REQUIRE(mesh_tetrahedralize(m_smooth));
 
+    auto nb_cell = m_smooth.cells.nb();
     SECTION("test rtree construction"){
-        OasisLib::make_rtree(m_smooth);
+        auto t = OasisLib::make_rtree(m_smooth);
     }
 
 }
