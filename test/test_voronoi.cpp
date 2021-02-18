@@ -16,6 +16,8 @@
 #include <geogram/basic/command_line_args.h>
 #include <geogram/basic/common.h>
 
+#include <iostream>
+
 using namespace GEO;
 namespace bgi = boost::geometry::index;
 
@@ -46,6 +48,8 @@ TEST_CASE("Test slice query", "[Query]"){
     auto nb_cell = m_smooth.cells.nb();
     SECTION("test rtree construction"){
         auto t = OasisLib::make_rtree(m_smooth);
+        REQUIRE(t.size() > 0);
+
     }
 
 }

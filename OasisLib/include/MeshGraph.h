@@ -10,7 +10,7 @@ using namespace GEO;
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
-using pt = bg::model::point<float, 1, bg::cs::cartesian>;
+using pt = bg::model::point<float, 3, bg::cs::cartesian>;
 using c_range = bg::model::box<pt>;
 using value = std::pair<c_range, index_t>;
 
@@ -19,5 +19,6 @@ using rtree = bgi::rtree<value, bgi::quadratic<16> >;
 namespace OasisLib{
     
     rtree make_rtree(const Mesh &m_in);
+
 }
 #endif
