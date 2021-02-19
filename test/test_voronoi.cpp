@@ -34,21 +34,20 @@ TEST_CASE("Test slice query", "[Query]"){
     CmdLine::import_arg_group("co3ne");
     CmdLine::import_arg_group("tet");
     CmdLine::import_arg_group("poly");
-
-    Mesh m_in;
-    Mesh m_smooth;
-    REQUIRE(mesh_load(path, m_in));
-    mesh_repair(m_in);
+    auto m_in = std::make_shared<Mesh>();
+    auto m_smooth = std::make_shared<Mesh>();
+    REQUIRE(mesh_load(path, *m_in));
+    mesh_repair(*m_in);
 
     index_t nb_points = 10000;
-    remesh_smooth(m_in, m_smooth, nb_points);
+    remesh_smooth(*m_in, *m_smooth, nb_points);
 
-    REQUIRE(mesh_tetrahedralize(m_smooth));
+    REQUIRE(mesh_tetrahedralize(*m_smooth));
 
-    auto nb_cell = m_smooth.cells.nb();
+    auto nb_cell = m_smooth->cells.nb();
     SECTION("test rtree construction"){
-        auto t = OasisLib::make_rtree(m_smooth);
-        REQUIRE(t.size() > 0);
+        auto t = OasisLib::MeshHeightSlicer(m_smooth);
+        REQUIRE(t.nb_nodes > 0);
 
     }
 

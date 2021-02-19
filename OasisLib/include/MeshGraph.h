@@ -17,8 +17,22 @@ using value = std::pair<c_range, index_t>;
 using rtree = bgi::rtree<value, bgi::quadratic<16> >;
 
 namespace OasisLib{
-    
-    rtree make_rtree(const Mesh &m_in);
+
+    class MeshHeightSlicer{
+
+        public:
+            size_t nb_nodes;
+
+            MeshHeightSlicer(std::shared_ptr<Mesh> m_ptr);
+            void get_layer(double z);
+
+        protected:
+            rtree mesh_tree;
+            std::shared_ptr<Mesh> mesh_ptr;
+        private:
+            void initialize_rtree();
+
+    };
 
 }
 #endif
