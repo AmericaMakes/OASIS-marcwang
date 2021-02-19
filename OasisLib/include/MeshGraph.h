@@ -22,16 +22,14 @@ namespace OasisLib{
 
         public:
             size_t nb_nodes;
-
             MeshHeightSlicer(std::shared_ptr<Mesh> m_ptr);
-            void get_layer(double z);
+            vector<value> get_layer(double z);
 
         protected:
             rtree mesh_tree;
             std::shared_ptr<Mesh> mesh_ptr;
         private:
             void initialize_rtree();
-
     };
 
 }
