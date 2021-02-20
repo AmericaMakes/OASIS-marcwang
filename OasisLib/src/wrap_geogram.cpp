@@ -9,6 +9,7 @@
 
 #include "GeogramBase.h"
 #include "GeogramVoronoi.h"
+#include "GeogramCaster.h"
 
 using namespace OasisLib;
 using namespace GEO;
@@ -48,11 +49,14 @@ PYBIND11_MODULE(OasisLib, m)
         .def("get_vector_attributes", &Mesh::get_vector_attributes,
              py::arg("max_dim") = 0)
         .def("nb_subelements_types", &Mesh::nb_subelements_types)
-        .def_readonly("cells", &Mesh::cells);
+        .def_readonly("cells", &Mesh::cells)
+        .def_readonly("vertices", &Mesh::vertices);
     
-    py::class_<MeshCells>(m, "GeoMeshCells")
-        .def(py::init<Mesh &>())
+    py::class_<MeshCells>(m, "MeshCells")
         .def("compute_borders", py::overload_cast<>(&MeshCells::compute_borders));
+    
+    py::class_<MeshVertices>(m, "MeshVertices")
+        .def("point", py::overload_cast<index_t>(&MeshVertices::point, py::const_ ));
 
     py::enum_<MeshAttributesFlags>(m, "MeshAttributesFlags", py::arithmetic())
         .value("MESH_NO_ATTRIBUTES", MeshAttributesFlags::MESH_NO_ATTRIBUTES)

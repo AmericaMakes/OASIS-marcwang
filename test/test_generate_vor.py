@@ -31,5 +31,12 @@ class GeogramTest(unittest.TestCase):
         out_attr.set_attributes(MeshAttributesFlags.MESH_ALL_ATTRIBUTES)
         mesh_save(voronoi, self.out, out_attr)
 
+    def test_access_attr(self):
+        m_in = GeoMesh()
+        load_status = mesh_load(self.stl_path, m_in)
+        array = m_in.vertices.point(0)
+        self.assertTrue(load_status)
+        self.assertTrue(len(array) > 0)
+
 if __name__ == '__main__':
     unittest.main()

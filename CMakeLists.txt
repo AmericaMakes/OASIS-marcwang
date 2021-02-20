@@ -22,6 +22,7 @@ set(LIB_HEADER
 
 set(LIB_SRC_WRAP
     ${CMAKE_CURRENT_SOURCE_DIR}/OasisLib/src/wrap_geogram.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/OasisLib/include/GeogramCaster.h
 )
 
 pybind11_add_module(OasisLib ${LIB_SRC} ${LIB_SRC_WRAP} ${LIB_HEADER})
