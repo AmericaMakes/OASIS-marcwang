@@ -52,4 +52,16 @@ namespace OasisLib
         }
     }
 
+    vector<value> MeshHeightSlicer::get_layer(double z){
+        vector<value> results;
+        auto bds = this->mesh_tree.bounds();
+        auto min_v = bds.min_corner();
+        auto max_v = bds.max_corner();
+
+        c_range bbx(pt(min_v.get<0>(), min_v.get<1>(), z),
+                    pt(max_v.get<0>(), max_v.get<1>(), z));
+
+        this -> mesh_tree.query(bgi::intersects(bbx), std::back_inserter(results));
+        return results;
+    }
 }
