@@ -24,6 +24,7 @@ namespace OasisLib{
             size_t nb_nodes;
             MeshHeightSlicer(std::shared_ptr<Mesh> m_ptr);
             vector<value> get_layer(double z);
+            void clip_cell(vector<value> &target_cell, Mesh &m_out, double z);
 
         protected:
             rtree mesh_tree;

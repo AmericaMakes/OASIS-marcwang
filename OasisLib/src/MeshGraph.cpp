@@ -1,6 +1,5 @@
 #include "MeshGraph.h"
 #include <geogram/basic/common.h>
-
 #include <limits>
 
 namespace OasisLib
@@ -25,10 +24,10 @@ namespace OasisLib
             std::array<double, 3> max_v;
             max_v.fill(-std::numeric_limits<float>::infinity());
 
-            for (index_t c = 0;
-                 c < this->mesh_ptr->facets.nb_vertices(f); ++c)
+            for (index_t c = this->mesh_ptr->facets.corners_begin(f);
+                 c < this->mesh_ptr->facets.corners_end(f); ++c)
             {
-                index_t g_index = this->mesh_ptr->facets.vertex(f, c);
+                index_t g_index = this->mesh_ptr->facet_corners.vertex(c);
                 auto v_pos = this->mesh_ptr->vertices.point(g_index);
 
                 for (index_t i = 0; i < 3; i++)
@@ -63,5 +62,16 @@ namespace OasisLib
 
         this -> mesh_tree.query(bgi::intersects(bbx), std::back_inserter(results));
         return results;
+    }
+
+    void MeshHeightSlicer::clip_cell(vector<value>& target_cell, Mesh &m_out,double z)
+    {
+        for(auto it = target_cell.cbegin(); it != target_cell.cend(); ++it)
+        {
+            auto pair = *it;
+            auto idx = pair.second;
+            
+            
+        }
     }
 }
