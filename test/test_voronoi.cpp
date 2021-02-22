@@ -48,7 +48,8 @@ TEST_CASE("Test slice query", "[Query]"){
     SECTION("test rtree construction"){
         auto t = OasisLib::MeshHeightSlicer(m_smooth);
         REQUIRE(t.nb_nodes > 0);
-
+        auto intersect_layer = t.get_layer(20);
+        REQUIRE(intersect_layer.size() > 0);
     }
 
 }
