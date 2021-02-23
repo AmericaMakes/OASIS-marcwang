@@ -14,42 +14,42 @@ namespace OasisLib
 
     void MeshHeightSlicer::initialize_rtree()
     {
-        MeshHalfedges mhl(*this->mesh_ptr);
-        
         index_t nb_f = this->mesh_ptr->facets.nb();
         for (index_t f_i = 0; f_i < nb_f; ++f_i)
         {
             for (auto c_i = this->mesh_ptr->facets.corners_begin(f_i);
-                c_i < this->mesh_ptr->facets.corners_end(f_i); ++c_i)
+                 c_i < this->mesh_ptr->facets.corners_end(f_i); ++c_i)
             {
                 MeshHalfedges::Halfedge hl(f_i, c_i);
 
-                auto p_1_id = this -> mesh_ptr->facet_corners.vertex(c_i);
-                auto c_i_1 = this -> mesh_ptr->facets.next_corner_around_facet(f_i, c_i);
-                
-                auto p_2_id = this -> mesh_ptr->facet_corners.vertex(c_i_1);
+                auto p_1_id = this->mesh_ptr->facet_corners.vertex(c_i);
+                auto c_i_1 = this->mesh_ptr->facets.next_corner_around_facet(f_i, c_i);
 
-                auto p_1 = this -> mesh_ptr->vertices.point(p_1_id);
-                auto p_2 = this -> mesh_ptr->vertices.point(p_2_id);
-                
+                auto p_2_id = this->mesh_ptr->facet_corners.vertex(c_i_1);
+
+                auto p_1 = this->mesh_ptr->vertices.point(p_1_id);
+                auto p_2 = this->mesh_ptr->vertices.point(p_2_id);
+
                 vecng<3, double> min_p;
                 vecng<3, double> max_p;
 
-                for(int i = 0; i < 3; ++i)
+                for (int i = 0; i < 3; ++i)
                 {
-                    if(p_1[i] >= p_2[i])
+                    if (p_1[i] >= p_2[i])
                     {
                         min_p[i] = p_2[i];
                         max_p[i] = p_1[i];
-                    }else
+                    }
+                    else
                     {
                         min_p[i] = p_1[i];
                         max_p[i] = p_2[i];
                     }
                 }
 
-                c_range bx(min_p,max_p);
-                this->mesh_tree.insert(std::make_pair(bx, hl));
+                c_range bx(min_p, max_p);
+                auto hl_id = std::make_pair(hl.facet, hl.corner);
+                this->mesh_tree.insert(std::make_pair(bx, hl_id));
             }
         }
     }
@@ -67,81 +67,74 @@ namespace OasisLib
         c_range bbx(l_pt, m_pt);
 
         this->mesh_tree.query(bgi::intersects(bbx), std::back_inserter(results));
-        //Mesh m_out;
-        //clip_cell(results, m_out, z);
+        Mesh m_out;
+        clip_cell(results, m_out, z);
 
         return results;
     }
-    /*
+
     void MeshHeightSlicer::clip_cell(vector<value> &target_facet, Mesh &m_out, double z)
-    {   
-        auto nb_e = target_facet.size();
-        //auto e_idx = m_out.create_edges(nb_e);
-        std::vector<edge_pair> e_v;
+    {
+        MeshHalfedges mhl(*this->mesh_ptr);
+
+        std::map<fc_p, pt> processed;
         for (auto it = target_facet.cbegin(); it != target_facet.cend(); ++it)
         {
             auto pair = *it;
-            auto c_i = pair.second;
-            //Polygon result;
-            //auto e_pair = clip_poly_by_plane(c_i, this->mesh_ptr.get(), z);
-            //e_v.push_back(e_pair);
+            auto id_pair = pair.second;
 
-            //auto p1 = e_pair.first;
-            //auto p2 = e_pair.second;
+            auto f_it = processed.find(id_pair);
 
-            //auto p1_idx = m_out.vertices.create_vertex(p1.data());
-            //auto p2_idx = m_out.vertices.create_vertex(p2.data());
+            MeshHalfedges::Halfedge c_hl(id_pair.first, id_pair.second);
 
-            //m_out.edges.set_vertex(e_idx, 0, p1_idx);
-            //m_out.edges.set_vertex(e_idx, 1, p2_idx);
-            //e_idx++;
-        }
-
-    }
-    
-    index_t MeshHeightSlicer::clip_cell_by_plane(index_t c_i, const Mesh *mesh, Mesh &out,double z)
-    {
-        vecng<3, double> p0{0.0, 0.0, z};
-        vecng<3, double> n{0.0, 0.0, 1.0};
-
-        auto mhl = MeshHalfedges(*mesh);
-        auto nb_facets_out = out.facets.nb();
-        auto nb_f = mesh -> cells.nb_facets(c_i);
-
-        vector<index_t> poly;
-        for(auto f = 0; k < nb_f; ++f)
-        {
-            auto nb_v = mesh -> cells.facet_nb_vertices(c_i, f);
-
-            Halfedge hl(f, 0);
-
-            int count = 0;
-            auto c_idx = mesh -> cells.facet_corner(c_i, hl.facet, hl.corner);
-            index_t current_v_idx = mesh->facet_corners.vertex(c_idx);
-            auto c_pos = mesh->vertices.point(current_v_idx);
-
-            mhl.move_to_next_around_facet(hl);          
-            auto n_idx = mesh -> cells.facet_corner(c_i, hl.facet, hl.corner);
-            index_t n_v_idx = mesh->facet_corners.vertex(n_idx);
-            auto n_pos = mesh->vertices.point(n_v_idx);
-
-            auto is_intersect = PCK::dot_compare_3d(n.data(), n_pos.data(), c_pos.data());
-            auto is_parrallel = PCK::dot_compare_3d(n.data(), p0.data(), c_pos.data());
-
-            // if sign not identical then intersection
-            if (is_intersect != 0)
+            if (f_it == processed.cend())
             {
-                auto inter_p = c_pos + dot((p0 - c_pos), n)/dot((n_pos - c_pos),n)*(n_pos - c_pos);
-                auto intersect_v_idx = mesh -> create_vertex(inter_p.data());
-                poly.push_back(intersect_v_idx);
-            }else{
-                if (is_parrallel == 0 && c == 0)
+                MeshHalfedges::Halfedge n_hl(c_hl.facet, c_hl.corner);
+                mhl.move_to_next_around_facet(n_hl);
+
+                auto p_1_id = this->mesh_ptr->facet_corners.vertex(c_hl.corner);
+                auto p_1 = this->mesh_ptr->vertices.point(p_1_id);
+
+                auto c_1_sign = geo_sgn(p_1[2] - z);
+                int count = 0;
+
+                while (count < 2)
                 {
-                    
+
+                    auto p_2_id = this->mesh_ptr->facet_corners.vertex(n_hl.corner);
+                    auto p_2 = this->mesh_ptr->vertices.point(p_2_id);
+
+                    auto c_2_sign = geo_sgn(p_2[2] - z);
+
+                    MeshHalfedges::Halfedge opp_hl(c_hl.facet, c_hl.corner);
+                    mhl.move_to_opposite(opp_hl);
+
+                    if (c_1_sign != c_2_sign && c_1_sign != 0)
+                    {
+                        double d = (z - p_1[2]) / (p_2[2] - p_1[2]);
+                        auto inter_p = p_1 + d * (p_2 - p_1);
+                        processed.insert({{c_hl.facet, c_hl.corner}, inter_p});
+                        processed.insert({{opp_hl.facet, opp_hl.corner}, inter_p});
+                        count++;
+                    }
+
+                    if (c_1_sign == 0)
+                    {
+                        processed.insert({{c_hl.facet, c_hl.corner}, p_1});
+                        processed.insert({{opp_hl.facet, opp_hl.corner}, p_1});
+                        count++;
+                    }
+
+                    if (processed.find({n_hl.facet, n_hl.corner}) != processed.cend())
+                    {
+                        count++;
+                    }
+                    c_hl = n_hl;
+                    mhl.move_to_next_around_facet(n_hl);
+                    p_1 = p_2;
+                    c_1_sign = c_2_sign;
                 }
             }
         }
-        return 0;
     }
-    */
 }
