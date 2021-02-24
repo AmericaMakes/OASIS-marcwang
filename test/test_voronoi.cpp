@@ -49,7 +49,10 @@ TEST_CASE("Test slice query", "[Query]"){
         auto t = OasisLib::MeshHeightSlicer(m_smooth);
         REQUIRE(t.nb_nodes > 0);
         auto intersect_layer = t.get_layer(20);
-        REQUIRE(intersect_layer.size() > 0);
+        mesh_repair(*intersect_layer);
+        MeshIOFlags attr;
+        attr.set_attributes(MeshAttributesFlags::MESH_ALL_ATTRIBUTES);
+        mesh_save(*intersect_layer, "./mesh_slice.obj", attr);
     }
 
 }
