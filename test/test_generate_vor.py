@@ -24,7 +24,7 @@ class GeogramTest(unittest.TestCase):
         self.assertTrue(tetra_status)
 
         voronoi = GeoMesh()
-        status_vor = polyhedral_mesher(m_out, voronoi, tessallate_non_convex = True)
+        status_vor = polyhedral_mesher(m_out, voronoi, tessallate_non_convex = False)
         self.assertTrue(status_vor)
         
         out_attr = MeshIOFlags()

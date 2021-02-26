@@ -39,6 +39,9 @@ TEST_CASE("Test slice query", "[Query]"){
     REQUIRE(mesh_load(path, *m_in));
     mesh_repair(*m_in);
 
+    MeshIOFlags attr;
+    attr.set_attributes(MeshAttributesFlags::MESH_ALL_ATTRIBUTES);
+
     index_t nb_points = 10000;
     remesh_smooth(*m_in, *m_smooth, nb_points);
 
@@ -50,8 +53,6 @@ TEST_CASE("Test slice query", "[Query]"){
         REQUIRE(t.nb_nodes > 0);
         auto intersect_layer = t.get_layer(20);
         mesh_repair(*intersect_layer);
-        MeshIOFlags attr;
-        attr.set_attributes(MeshAttributesFlags::MESH_ALL_ATTRIBUTES);
         mesh_save(*intersect_layer, "./mesh_slice.obj", attr);
     }
 
