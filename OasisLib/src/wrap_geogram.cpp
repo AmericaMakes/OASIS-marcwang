@@ -1,4 +1,5 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <geogram/mesh/mesh.h>
 #include <geogram/mesh/mesh_io.h>
 #include <geogram/mesh/mesh_repair.h>
@@ -10,6 +11,7 @@
 #include "GeogramBase.h"
 #include "GeogramVoronoi.h"
 #include "GeogramCaster.h"
+#include "MeshGraph.h"
 
 using namespace OasisLib;
 using namespace GEO;
@@ -119,4 +121,8 @@ PYBIND11_MODULE(OasisLib, m)
         py::arg("nb_points") = 30000, py::arg("coord_index_t") = 0,
         py::arg("nb_Lloyd_iter") = 5, py::arg("nb_Newton_iter") = 30,
         py::arg("Newton_m") = 7);
+
+    py::class_<MeshHeightSlicer>(m, "MeshHeightSlicer")
+        .def(py::init<std::shared_ptr<Mesh>>())
+        .def("get_layer", &MeshHeightSlicer::get_layer);
 }

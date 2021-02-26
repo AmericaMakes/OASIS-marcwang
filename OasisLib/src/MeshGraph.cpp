@@ -53,7 +53,7 @@ namespace OasisLib
 
     std::pair<sh_mesh_ptr, id_map> MeshHeightSlicer::get_layer(double z)
     {
-        vector<value> results;
+        std::vector<value> results;
         auto bds = this->mesh_tree.bounds();
         auto min_v = bds.min_corner();
         auto max_v = bds.max_corner();
@@ -66,12 +66,12 @@ namespace OasisLib
         this->mesh_tree.query(bgi::intersects(bbx), std::back_inserter(results));
 
         auto m_out = std::make_shared<Mesh>();
-        auto c2f = clip_cell(results, *m_out, z);
+        auto c2f = this->clip_cell(results, *m_out, z);
 
         return std::make_pair(m_out, c2f);
     }
 
-    id_map MeshHeightSlicer::clip_cell(vector<value> &target_facet, Mesh &m_out, double z)
+    id_map MeshHeightSlicer::clip_cell(std::vector<value> &target_facet, Mesh &m_out, double z)
     {
         id_map cell2facet;
         std::map<index_t, mpt2d> pt_accumulator;
@@ -134,7 +134,7 @@ namespace OasisLib
             contour2d hull;
             bg::convex_hull(m_pt, hull);
 
-            vector<index_t> added_id;
+            std::vector<index_t> added_id;
 
             for (auto p_it = std::cbegin(hull); p_it != std::cend(hull); ++p_it)
             {
@@ -147,7 +147,7 @@ namespace OasisLib
                 added_id.push_back(a_id);
             }
 
-            auto f_id = m_out.facets.create_polygon(added_id);
+            auto f_id = m_out.facets.create_polygon(added_id.size(),&added_id[0]);
             cell2facet.insert({f_id, c_id});
         }
 

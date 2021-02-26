@@ -1,5 +1,7 @@
 #ifndef MESHGRAPH_H
 #define MESHGRAPH_H
+#include <vector>
+#include <map>
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
@@ -43,7 +45,7 @@ namespace OasisLib
         sh_mesh_ptr mesh_ptr;
 
     private:
-        id_map clip_cell(vector<value> &target_facet, Mesh &m_out, double z);
+        id_map clip_cell(std::vector<value> &target_facet, Mesh &m_out, double z);
         void initialize_rtree();
     };
 
