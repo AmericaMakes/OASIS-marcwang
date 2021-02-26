@@ -7,7 +7,7 @@
 namespace OasisLib
 {
 
-    MeshHeightSlicer::MeshHeightSlicer(std::shared_ptr<Mesh> m_ptr)
+    MeshHeightSlicer::MeshHeightSlicer(sh_mesh_ptr m_ptr)
     {
         this->mesh_ptr = m_ptr;
         this->initialize_rtree();
@@ -51,7 +51,7 @@ namespace OasisLib
         }
     }
 
-    std::shared_ptr<Mesh> MeshHeightSlicer::get_layer(double z)
+    std::pair<sh_mesh_ptr, id_map> MeshHeightSlicer::get_layer(double z)
     {
         vector<value> results;
         auto bds = this->mesh_tree.bounds();
@@ -66,13 +66,14 @@ namespace OasisLib
         this->mesh_tree.query(bgi::intersects(bbx), std::back_inserter(results));
 
         auto m_out = std::make_shared<Mesh>();
-        clip_cell(results, *m_out, z);
+        auto c2f = clip_cell(results, *m_out, z);
 
-        return m_out;
+        return std::make_pair(m_out, c2f);
     }
 
-    void MeshHeightSlicer::clip_cell(vector<value> &target_facet, Mesh &m_out, double z)
+    id_map MeshHeightSlicer::clip_cell(vector<value> &target_facet, Mesh &m_out, double z)
     {
+        id_map cell2facet;
         std::map<index_t, mpt2d> pt_accumulator;
         for (auto it = target_facet.cbegin(); it != target_facet.cend(); ++it)
         {
@@ -146,10 +147,12 @@ namespace OasisLib
                 added_id.push_back(a_id);
             }
 
-            m_out.facets.create_polygon(added_id);
+            auto f_id = m_out.facets.create_polygon(added_id);
+            cell2facet.insert({f_id, c_id});
         }
 
         mesh_repair(m_out, MeshRepairMode::MESH_REPAIR_COLOCATE);
+        return cell2facet;
     }
 
 }

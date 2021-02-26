@@ -25,6 +25,7 @@ using value = std::pair<c_range, std::pair<index_t, index_t>>;
 using rtree = bgi::rtree<value, bgi::quadratic<16>>;
 
 using sh_mesh_ptr = std::shared_ptr<Mesh>;
+using id_map = std::map<index_t, index_t>;
 
 namespace OasisLib
 {
@@ -35,14 +36,14 @@ namespace OasisLib
 
         size_t nb_nodes;
         MeshHeightSlicer(sh_mesh_ptr m_ptr);
-        sh_mesh_ptr get_layer(double z);
+        std::pair<sh_mesh_ptr, id_map> get_layer(double z);
 
     protected:
         rtree mesh_tree;
         sh_mesh_ptr mesh_ptr;
 
     private:
-        void clip_cell(vector<value> &target_facet, Mesh &m_out, double z);
+        id_map clip_cell(vector<value> &target_facet, Mesh &m_out, double z);
         void initialize_rtree();
     };
 
