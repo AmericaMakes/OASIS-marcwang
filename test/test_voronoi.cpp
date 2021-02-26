@@ -50,10 +50,14 @@ TEST_CASE("Test slice query", "[Query]"){
     auto nb_cell = m_smooth->cells.nb();
     SECTION("test rtree construction"){
         auto t = OasisLib::MeshHeightSlicer(m_smooth);
+        Mesh single_layer;
+
         REQUIRE(t.nb_nodes > 0);
-        auto res_pair = t.get_layer(20);
-        mesh_repair(*res_pair.first);
-        mesh_save(*res_pair.first, "./mesh_slice.obj", attr);
+        auto id_map = t.get_layer(single_layer, 20);
+
+        REQUIRE(id_map.size() > 0);
+        mesh_repair(single_layer);
+        mesh_save(single_layer, "./mesh_slice.obj", attr);
     }
 
 }

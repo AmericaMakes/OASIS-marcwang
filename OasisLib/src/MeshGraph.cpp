@@ -1,6 +1,7 @@
 #include "MeshGraph.h"
 #include <geogram/basic/common.h>
 #include <geogram/mesh/mesh_repair.h>
+#include <geogram/basic/logger.h>
 
 #include <boost/geometry/algorithms/convex_hull.hpp>
 
@@ -9,7 +10,15 @@ namespace OasisLib
 
     MeshHeightSlicer::MeshHeightSlicer(sh_mesh_ptr m_ptr)
     {
+        Logger::div("Init MeshHeightSlicer");
         this->mesh_ptr = m_ptr;
+
+        Logger::out("MeshHeightSlicer") << "Input mesh has " \
+                << this->mesh_ptr-> cells.nb() << \
+                " cells," << \
+                this->mesh_ptr->vertices.nb() <<
+                " vertices" <<std::endl;
+
         this->initialize_rtree();
         this->nb_nodes = this->mesh_tree.size();
     }
@@ -51,7 +60,7 @@ namespace OasisLib
         }
     }
 
-    std::pair<sh_mesh_ptr, id_map> MeshHeightSlicer::get_layer(double z)
+    id_map MeshHeightSlicer::get_layer(Mesh &m_out, double z)
     {
         std::vector<value> results;
         auto bds = this->mesh_tree.bounds();
@@ -65,10 +74,12 @@ namespace OasisLib
 
         this->mesh_tree.query(bgi::intersects(bbx), std::back_inserter(results));
 
-        auto m_out = std::make_shared<Mesh>();
-        auto c2f = this->clip_cell(results, *m_out, z);
+        Logger::out("MeshHeightSlicer") << "computed " << \
+                results.size() << " intersection" << std::endl;
 
-        return std::make_pair(m_out, c2f);
+        auto c2f = this->clip_cell(results, m_out, z);
+
+        return c2f;
     }
 
     id_map MeshHeightSlicer::clip_cell(std::vector<value> &target_facet, Mesh &m_out, double z)
@@ -150,8 +161,10 @@ namespace OasisLib
             auto f_id = m_out.facets.create_polygon(added_id.size(),&added_id[0]);
             cell2facet.insert({f_id, c_id});
         }
-
-        mesh_repair(m_out, MeshRepairMode::MESH_REPAIR_COLOCATE);
+        auto repair_mode = static_cast<MeshRepairMode>
+                        (static_cast<int>(MeshRepairMode::MESH_REPAIR_COLOCATE) | 
+                        static_cast<int>(MeshRepairMode::MESH_REPAIR_DUP_F)) ;
+        mesh_repair(m_out, repair_mode);
         return cell2facet;
     }
 

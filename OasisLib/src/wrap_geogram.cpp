@@ -35,7 +35,7 @@ PYBIND11_MODULE(OasisLib, m)
         .value("MESH_ALL_SUBELEMENTS", MeshElementsFlags::MESH_ALL_SUBELEMENTS)
         .export_values();
 
-    py::class_<Mesh>(m, "GeoMesh")
+    py::class_<Mesh, std::shared_ptr<Mesh>>(m, "GeoMesh")
         .def(py::init<geo_index_t, bool>(),
              py::arg("dimension") = 3, py::arg("single_precision") = false)
         .def("clear", &Mesh::clear,
@@ -58,7 +58,8 @@ PYBIND11_MODULE(OasisLib, m)
         .def("compute_borders", py::overload_cast<>(&MeshCells::compute_borders));
     
     py::class_<MeshVertices>(m, "MeshVertices")
-        .def("point", py::overload_cast<index_t>(&MeshVertices::point, py::const_ ));
+        .def("point", py::overload_cast<index_t>(&MeshVertices::point, py::const_ ))
+        .def("nb", &MeshVertices::nb);
 
     py::enum_<MeshAttributesFlags>(m, "MeshAttributesFlags", py::arithmetic())
         .value("MESH_NO_ATTRIBUTES", MeshAttributesFlags::MESH_NO_ATTRIBUTES)

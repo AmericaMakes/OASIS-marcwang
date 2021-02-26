@@ -38,7 +38,7 @@ namespace OasisLib
 
         size_t nb_nodes;
         MeshHeightSlicer(sh_mesh_ptr m_ptr);
-        std::pair<sh_mesh_ptr, id_map> get_layer(double z);
+        id_map get_layer(Mesh &m_out, double z);
 
     protected:
         rtree mesh_tree;
