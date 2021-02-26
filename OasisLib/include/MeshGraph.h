@@ -24,20 +24,22 @@ using contour2d = bg::model::ring<pt2d>;
 using value = std::pair<c_range, std::pair<index_t, index_t>>;
 using rtree = bgi::rtree<value, bgi::quadratic<16>>;
 
+using sh_mesh_ptr = std::shared_ptr<Mesh>;
+
 namespace OasisLib
 {
 
     class MeshHeightSlicer
     {
     public:
-        //enum class EdgeIntersect{ No, One, Two};
+
         size_t nb_nodes;
-        MeshHeightSlicer(std::shared_ptr<Mesh> m_ptr);
-        std::shared_ptr<Mesh> get_layer(double z);
+        MeshHeightSlicer(sh_mesh_ptr m_ptr);
+        sh_mesh_ptr get_layer(double z);
 
     protected:
         rtree mesh_tree;
-        std::shared_ptr<Mesh> mesh_ptr;
+        sh_mesh_ptr mesh_ptr;
 
     private:
         void clip_cell(vector<value> &target_facet, Mesh &m_out, double z);

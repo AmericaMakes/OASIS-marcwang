@@ -1,10 +1,8 @@
 #include "MeshGraph.h"
 #include <geogram/basic/common.h>
-#include <geogram/numerics/predicates.h>
 #include <geogram/mesh/mesh_repair.h>
 
 #include <boost/geometry/algorithms/convex_hull.hpp>
-#include <limits>
 
 namespace OasisLib
 {
