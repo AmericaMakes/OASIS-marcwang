@@ -5,6 +5,7 @@
 
 namespace OasisLib
 {
+
     MeshHeightSlicer::MeshHeightSlicer(std::shared_ptr<Mesh> m_ptr)
     {
         this->mesh_ptr = m_ptr;
@@ -17,39 +18,37 @@ namespace OasisLib
         index_t nb_c = this->mesh_ptr->cells.nb();
         for (index_t c = 0; c < nb_c; ++c)
         {
-            index_t nb_e = this -> mesh_ptr->cells.nb_edges(c);
+            index_t nb_v = this->mesh_ptr->cells.nb_vertices(c);
+            pt min_p;
+            pt max_p;
 
-            for(auto e_i = 0; e_i < nb_e; ++e_i){
-                
-                auto e0_v = this->mesh_ptr->cells.edge_vertex(c, e_i, 0);
-                auto p_1 = this->mesh_ptr->vertices.point(e0_v);
+            for (int i = 0; i < 3; ++i)
+            {
+                min_p[i] = std::numeric_limits<double>::infinity();
+                max_p[i] = -std::numeric_limits<double>::infinity();
+            }
 
-                auto e1_v = this->mesh_ptr->cells.edge_vertex(c, e_i, 1);
-                auto p_2 = this->mesh_ptr->vertices.point(e1_v);
-
-                vecng<3, double> min_p;
-                vecng<3, double> max_p;
+            for (auto v_i = 0; v_i < nb_v; ++v_i)
+            {
+                index_t g_v = this->mesh_ptr->cells.vertex(c, v_i);
+                auto v_pos = this->mesh_ptr->vertices.point(g_v);
 
                 for (int i = 0; i < 3; ++i)
                 {
-                    if (p_1[i] >= p_2[i])
+                    if (min_p[i] > v_pos[i])
                     {
-                        min_p[i] = p_2[i];
-                        max_p[i] = p_1[i];
+                        min_p[i] = v_pos[i];
                     }
-                    else
+
+                    if (max_p[i] < v_pos[i])
                     {
-                        min_p[i] = p_1[i];
-                        max_p[i] = p_2[i];
+                        max_p[i] = v_pos[i];
                     }
                 }
+            }
 
-                c_range bx(min_p, max_p);
-                fc_p ids{c, e_i};
-                this->mesh_tree.insert(std::make_pair(bx, ids));
-                
-            }   
-            
+            c_range bx(min_p, max_p);
+            this->mesh_tree.insert(std::make_pair(bx, c));
         }
     }
 
@@ -66,7 +65,7 @@ namespace OasisLib
         c_range bbx(l_pt, m_pt);
 
         this->mesh_tree.query(bgi::intersects(bbx), std::back_inserter(results));
-        
+
         auto m_out = std::make_shared<Mesh>();
         clip_cell(results, *m_out, z);
 
@@ -75,102 +74,144 @@ namespace OasisLib
 
     void MeshHeightSlicer::clip_cell(vector<value> &target_facet, Mesh &m_out, double z)
     {
-        std::map<index_t, std::map<index_t, std::set<index_t>>> processed_c;
 
         for (auto it = target_facet.cbegin(); it != target_facet.cend(); ++it)
         {
-            auto ids = it -> second;
+            auto cell_id = it->second;
+            vector<index_t> poly;
 
-            auto c_it = processed_c.find(ids.first);
-
-            if(c_it == processed_c.cend())
+            index_t inter_f;
+            auto nb_f_c = this->mesh_ptr->cells.nb_facets(cell_id);
+            for (auto f = 0; f < nb_f_c; ++f)
             {
-                std::map<index_t, std::set<index_t>> poly_e;
-                processed_c.insert({ids.first, poly_e});
-            }
-            
-
-            auto f = this->mesh_ptr->cells.edge_adjacent_facet(ids.first, ids.second, 0);
-            auto f_opp = this->mesh_ptr->cells.edge_adjacent_facet(ids.first, ids.second, 1);
-
-            auto p_1_id = this->mesh_ptr->cells.edge_vertex(ids.first, ids.second, 0);
-            auto p_1 = this->mesh_ptr->vertices.point(p_1_id);
-
-            auto c_1_sign = geo_sgn(p_1[2] - z);
-
-            auto p_2_id = this->mesh_ptr->cells.edge_vertex(ids.first, ids.second, 1);
-            auto p_2 = this->mesh_ptr->vertices.point(p_2_id);
-
-            auto c_2_sign = geo_sgn(p_2[2] - z);
-            index_t inter_id;
-            bool intersection = false;
-            if (c_1_sign != c_2_sign && c_1_sign != 0)
-            {
-                double d = (z - p_1[2]) / (p_2[2] - p_1[2]);
-                auto inter_p = p_1 + d * (p_2 - p_1);
-                inter_id = m_out.vertices.create_vertex(inter_p.data());
-                intersection = true;
-            }
-
-            if (c_1_sign == 0)
-            {
-                inter_id = m_out.vertices.create_vertex(p_1.data());
-                intersection = true;
-            } 
-
-            if(intersection)
-            {
-                auto poly = processed_c[ids.first];
-
-                auto f_it = poly.find(f);
-
-                if(f_it == poly.cend())
+                inter_f = f;
+                auto intersect_f = IsFacet(cell_id, f, z);
+                if (intersect_f)
                 {
-                    std::set<index_t> edge;
-                    poly.insert({f, edge});
+                    break;
                 }
-
-                poly[f].insert(inter_id);
-
-                auto f_opp_it = poly.find(f_opp);
-
-                if(f_opp_it == poly.cend())
-                {
-                    std::set<index_t> edge;
-                    poly.insert({f_opp, edge});
-                }
-
-                poly[f_opp].insert(inter_id);
-
             }
-            
-        }
+            auto n_f = this->mesh_ptr->cells.facet(cell_id, inter_f);
+            auto n_f_start = n_f;
+            do {
+                auto c_begin = this->mesh_ptr->facets.corners_begin(n_f);
+                auto c_end = this->mesh_ptr->facets.corners_end(n_f);
 
-        std::vector<index_t> cell_map;
-        for(auto it = processed_c.cbegin(); it != processed_c.cend(); ++it)
-        {
-            cell_map.push_back(it -> first);
-            std::vector<index_t> vertex_list;
-            auto edge_list = it -> second;
-
-            for(auto it_e = edge_list.cbegin(); it_e != edge_list.cend(); ++it_e)
-            {
-                auto edge = it_e -> second;
-                if(edge.size() > 1 && edge.size() < 2)
+                int count = 0;
+                auto inter_c = 0;
+                for (auto c_i = c_begin; c_i < c_end; ++c_i)
                 {
-                    auto e_i = m_out.edges.create_edge();
-                    int count = 0;
-                    for(auto e_it = edge.cbegin(); e_it != edge.cend(); ++e_it)
+                    pt inter_p;
+                    auto c_i_1 = this->mesh_ptr->facets.next_corner_around_facet(n_f, c_i);
+                    auto intersection = IsIntersection(c_i, c_i_1, inter_p, z);
+
+                    if (intersection == 2)
                     {
-                        auto v_id = *e_it;
-                        m_out.edges.set_vertex(e_i, count, v_id);
+                        auto g_p1 = this->mesh_ptr->facet_corners.vertex(c_i);
+                        auto g_p2 = this->mesh_ptr->facet_corners.vertex(c_i_1);
+
+                        auto p_1 = this->mesh_ptr->vertices.point(g_p1);
+                        auto p_2 = this->mesh_ptr->vertices.point(g_p2);
+                        auto v_id_1 = m_out.vertices.create_vertex(p_1.data());
+                        auto v_id_2 = m_out.vertices.create_vertex(p_2.data());
+                        poly.push_back(v_id_1);
+                        poly.push_back(v_id_2);
+                        count = 2;
+                    }
+
+                    if (intersection == 1)
+                    {
+                        auto v_id = m_out.vertices.create_vertex(inter_p.data());
+                        poly.push_back(v_id);
                         count++;
                     }
 
+                    if (count > 2)
+                    {
+                        inter_c = c_i;
+                        break;
+                    }  
                 }
-            }
-            
+
+                n_f = this->mesh_ptr->facet_corners.adjacent_facet(inter_c);
+            }while(n_f != n_f_start);
+
+            m_out.facets.create_polygon(poly);
         }
-        
     }
+
+    int MeshHeightSlicer::IsIntersection(index_t c_1, index_t c_2, pt &inter_p, double z)
+    {
+        int intersection = 0;
+        auto g_p1 = this->mesh_ptr->facet_corners.vertex(c_1);
+        auto g_p2 = this->mesh_ptr->facet_corners.vertex(c_2);
+
+        auto p_1 = this->mesh_ptr->vertices.point(g_p1);
+        auto p_2 = this->mesh_ptr->vertices.point(g_p2);
+
+        auto c_1_sign = geo_sgn(p_1[2] - z);
+        auto c_2_sign = geo_sgn(p_2[2] - z);
+
+        if (c_1_sign != c_2_sign && (c_1_sign != 0 && c_2_sign != 0))
+        {
+            double d = (z - p_1[2]) / (p_2[2] - p_1[2]);
+            inter_p = p_1 + d * (p_2 - p_1);
+            intersection = 1;
+            return intersection;
+        }
+
+        if (c_1_sign == 0 && c_2_sign == 0)
+        {
+            intersection = 2;
+            return intersection;
+        }
+
+        if (c_1_sign == 0)
+        {
+            inter_p = p_1;
+            intersection = 1;
+            return intersection;
+        }
+
+        if (c_2_sign == 0)
+        {
+            inter_p = p_2;
+            intersection = 1;
+            return intersection;
+        }
+
+        return intersection;
+    }
+
+    bool MeshHeightSlicer::IsFacet(index_t c, index_t f, double z)
+    {
+        auto nb_v = this->mesh_ptr->cells.facet_nb_vertices(c, f);
+
+        double min_p = std::numeric_limits<double>::infinity();
+        double max_p = -std::numeric_limits<double>::infinity();
+
+        for (auto v = 0; v < nb_v; ++v)
+        {
+            auto v_id = this->mesh_ptr->cells.facet_vertex(c, f, v);
+            auto v_pos = this->mesh_ptr->vertices.point(v_id);
+
+            if (min_p > v_pos[2])
+            {
+                min_p = v_pos[2];
+            }
+
+            if (max_p < v_pos[2])
+            {
+                max_p = v_pos[2];
+            }
+        }
+
+        if (min_p <= z && max_p >= z)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 }
