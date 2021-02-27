@@ -23,7 +23,7 @@ BOOST_GEOMETRY_REGISTER_POINT_2D(pt2d, double, bg::cs::cartesian, data()[0], dat
 using c_range = bg::model::box<pt>;
 using mpt2d = bg::model::multi_point<pt2d>;
 using contour2d = bg::model::ring<pt2d>;
-using value = std::pair<c_range, std::pair<index_t, index_t>>;
+using value = std::pair<c_range, index_t>;
 using rtree = bgi::rtree<value, bgi::quadratic<16>>;
 
 using sh_mesh_ptr = std::shared_ptr<Mesh>;
@@ -47,6 +47,8 @@ namespace OasisLib
     private:
         id_map clip_cell(std::vector<value> &target_facet, Mesh &m_out, double z);
         void initialize_rtree();
+        void check_mesh();
+
     };
 
 }

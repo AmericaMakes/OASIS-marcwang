@@ -2,6 +2,7 @@
 #include <geogram/basic/common.h>
 #include <geogram/mesh/mesh_repair.h>
 #include <geogram/basic/logger.h>
+#include <geogram/basic/attributes.h>
 
 #include <boost/geometry/algorithms/convex_hull.hpp>
 
@@ -12,30 +13,55 @@ namespace OasisLib
     {
         Logger::div("Init MeshHeightSlicer");
         this->mesh_ptr = m_ptr;
-
         Logger::out("MeshHeightSlicer") << "Input mesh has " \
-                << this->mesh_ptr-> cells.nb() << \
-                " cells," << \
-                this->mesh_ptr->vertices.nb() <<
-                " vertices" <<std::endl;
+                                        << this->mesh_ptr->facets.nb() << " facets," << \
+                                        this->mesh_ptr->vertices.nb() << " vertices" \
+                                        << std::endl;
 
+        check_mesh();
         this->initialize_rtree();
         this->nb_nodes = this->mesh_tree.size();
     }
 
+    void MeshHeightSlicer::check_mesh()
+    {
+        try
+        {
+            if (this->mesh_ptr->cells.nb() == 0)
+            {
+                Attribute<int> cell_id(this->mesh_ptr->facets.attributes(), "cell_id");
+                auto c_vector = cell_id.get_vector();
+                std::set<int> counter(c_vector.cbegin(), c_vector.cend());
+                Logger::out("MeshHeightSlicer") << counter.size() << " cells" << std::endl;
+
+                if (counter.size() == 0)
+                {
+                    throw 0;
+                }
+            }
+        }
+        catch (int e)
+        {
+            Logger::err("MeshHeightSlicer") << "input mesh has no cells" << std::endl;
+        }
+    }
+
     void MeshHeightSlicer::initialize_rtree()
     {
-        index_t nb_c = this->mesh_ptr->cells.nb();
-        for (index_t c = 0; c < nb_c; ++c)
+        Attribute<int> cell_id(this->mesh_ptr->facets.attributes(), "cell_id");
+        index_t nb_f = this->mesh_ptr->facets.nb();
+        for (index_t f = 0; f < nb_f; ++f)
         {
-            index_t nb_e = this->mesh_ptr->cells.nb_edges(c);
-
-            for (auto e_i = 0; e_i < nb_e; ++e_i)
+            auto c = cell_id[f];
+            auto c_begin = this -> mesh_ptr -> facets.corners_begin(f);
+            auto c_end = this -> mesh_ptr -> facets.corners_end(f);
+            for (auto c_i = c_begin; c_i < c_end; ++c_i)
             {
                 pt min_p;
                 pt max_p;
-                auto p1_id = this->mesh_ptr->cells.edge_vertex(c, e_i, 0);
-                auto p2_id = this->mesh_ptr->cells.edge_vertex(c, e_i, 1);
+                auto p1_id = this->mesh_ptr->facet_corners.vertex(c_i);
+                auto c_i_1 = this->mesh_ptr->facets.next_corner_around_facet(f, c_i);
+                auto p2_id = this->mesh_ptr->facet_corners.vertex(c_i_1);
 
                 auto p_1_pos = this->mesh_ptr->vertices.point(p1_id);
                 auto p_2_pos = this->mesh_ptr->vertices.point(p2_id);
@@ -54,8 +80,7 @@ namespace OasisLib
                     }
                 }
                 c_range bx(min_p, max_p);
-                auto id = std::make_pair(c, e_i);
-                this->mesh_tree.insert(std::make_pair(bx, id));
+                this->mesh_tree.insert(std::make_pair(bx, c));
             }
         }
     }
@@ -74,8 +99,7 @@ namespace OasisLib
 
         this->mesh_tree.query(bgi::intersects(bbx), std::back_inserter(results));
 
-        Logger::out("MeshHeightSlicer") << "computed " << \
-                results.size() << " intersection" << std::endl;
+        Logger::out("MeshHeightSlicer") << "computed " << results.size() << " intersection" << std::endl;
 
         auto c2f = this->clip_cell(results, m_out, z);
 
@@ -88,8 +112,8 @@ namespace OasisLib
         std::map<index_t, mpt2d> pt_accumulator;
         for (auto it = target_facet.cbegin(); it != target_facet.cend(); ++it)
         {
-            auto c_id = it->second.first;
-            auto e_id = it->second.second;
+            auto box = it -> first;
+            auto c_id = it->second;
 
             auto c_it = pt_accumulator.find(c_id);
 
@@ -98,11 +122,8 @@ namespace OasisLib
                 pt_accumulator.insert({c_id, mpt2d()});
             }
 
-            auto g_p1 = this->mesh_ptr->cells.edge_vertex(c_id, e_id, 0);
-            auto g_p2 = this->mesh_ptr->cells.edge_vertex(c_id, e_id, 1);
-
-            auto p_1 = this->mesh_ptr->vertices.point(g_p1);
-            auto p_2 = this->mesh_ptr->vertices.point(g_p2);
+            auto p_1 = box.min_corner();
+            auto p_2 = box.max_corner();
 
             auto c_1_sign = geo_sgn(p_1[2] - z);
             auto c_2_sign = geo_sgn(p_2[2] - z);
@@ -110,7 +131,7 @@ namespace OasisLib
             if (c_1_sign != c_2_sign && (c_1_sign != 0 && c_2_sign != 0))
             {
                 pt2d inter_p2d;
-                double d = (z - p_1[2]) / (p_2[2] - p_1[2]);
+                double d = (z - p_1[2]) / (p_2[2]- p_1[1]);
                 auto inter_p = p_1 + d * (p_2 - p_1);
 
                 inter_p2d[0] = inter_p[0];
@@ -158,12 +179,11 @@ namespace OasisLib
                 added_id.push_back(a_id);
             }
 
-            auto f_id = m_out.facets.create_polygon(added_id.size(),&added_id[0]);
+            auto f_id = m_out.facets.create_polygon(added_id.size(), &added_id[0]);
             cell2facet.insert({f_id, c_id});
         }
-        auto repair_mode = static_cast<MeshRepairMode>
-                        (static_cast<int>(MeshRepairMode::MESH_REPAIR_COLOCATE) | 
-                        static_cast<int>(MeshRepairMode::MESH_REPAIR_DUP_F)) ;
+        auto repair_mode = static_cast<MeshRepairMode>(static_cast<int>(MeshRepairMode::MESH_REPAIR_COLOCATE) |
+                                                       static_cast<int>(MeshRepairMode::MESH_REPAIR_DUP_F));
         mesh_repair(m_out, repair_mode);
         return cell2facet;
     }
