@@ -16,7 +16,6 @@ namespace OasisLib{
                         index_t nb_iter_lloyd = 5,
                         index_t nb_iter_newton = 30,
                         bool tessallate_non_convex = false,
-                        float poly_cell_shrinks = 0.0,
-                        bool generate_ids = true);
+                        float poly_cell_shrinks = 0.0);
 }
 #endif

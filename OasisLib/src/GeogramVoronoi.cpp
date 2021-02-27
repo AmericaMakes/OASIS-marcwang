@@ -16,8 +16,7 @@ namespace OasisLib
                           index_t nb_iter_lloyd,
                           index_t nb_iter_newton,
                           bool tessallate_non_convex,
-                          float poly_cell_shrinks,
-                          bool generate_ids)
+                          float poly_cell_shrinks)
     {
         Logger::div("Polyhedral meshing");
 
@@ -86,7 +85,7 @@ namespace OasisLib
             }
             callback.set_tessellate_non_convex_facets(tessallate_non_convex);
             callback.set_shrink(poly_cell_shrinks);
-            callback.set_generate_ids(generate_ids);
+            callback.set_generate_ids(true);
             CVT.RVD()->for_each_polyhedron(callback);
         }
 
