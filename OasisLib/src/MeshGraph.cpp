@@ -98,11 +98,13 @@ namespace OasisLib
 
         c_range bbx(l_pt, m_pt);
 
+        double rel_z = min_v.get<2>() + z;
+
         this->mesh_tree.query(bgi::intersects(bbx), std::back_inserter(results));
 
         Logger::out("MeshHeightSlicer") << "computed " << results.size() << " intersection" << std::endl;
 
-        auto c2f = this->clip_cell(results, m_out, z);
+        auto c2f = this->clip_cell(results, m_out, rel_z);
 
         return c2f;
     }
@@ -187,7 +189,7 @@ namespace OasisLib
             auto f_id = m_out.facets.create_polygon(added_id.size(), &added_id[0]);
             cell2facet.insert({f_id, c_id});
         }
-        
+        Logger::out("MeshHeightSlicer") << "outputs contains : " << cell2facet.size() << " facet" << std::endl;
         return cell2facet;
     }
 
