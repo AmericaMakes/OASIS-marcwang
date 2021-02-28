@@ -92,8 +92,8 @@ namespace OasisLib
         auto min_v = bds.min_corner();
         auto max_v = bds.max_corner();
 
-        pt l_pt({min_v.get<0>(), min_v.get<1>(), z});
-        pt m_pt({max_v.get<0>(), max_v.get<1>(), z});
+        pt l_pt({min_v.get<0>(), min_v.get<1>(), z - 0.1});
+        pt m_pt({max_v.get<0>(), max_v.get<1>(), z + 0.1});
 
         c_range bbx(l_pt, m_pt);
 
@@ -125,10 +125,13 @@ namespace OasisLib
             auto p_1 = box.min_corner();
             auto p_2 = box.max_corner();
 
-            auto c_1_sign = geo_sgn(p_1[2] - z);
-            auto c_2_sign = geo_sgn(p_2[2] - z);
+            auto p_1_diff = p_1[2] - z;
+            auto p_2_diff = p_2[2] - z;
 
-            if (c_1_sign != c_2_sign && (c_1_sign != 0 && c_2_sign != 0))
+            auto c_1_sign = geo_sgn(p_1_diff);
+            auto c_2_sign = geo_sgn(p_2_diff);
+
+            if (c_1_sign != c_2_sign && (abs(p_1_diff) >= 1e-4 && abs(p_1_diff) >= 1e-4))
             {
                 pt2d inter_p2d;
                 double d = (z - p_1[2]) / (p_2[2]- p_1[1]);
@@ -140,7 +143,7 @@ namespace OasisLib
             }
             else
             {
-                if (c_1_sign == 0)
+                if (abs(p_1_diff) < 1e-4)
                 {
                     pt2d inter_p2d;
                     inter_p2d[0] = p_1[0];
@@ -148,7 +151,7 @@ namespace OasisLib
                     bg::append(pt_accumulator[c_id], inter_p2d);
                 }
 
-                if (c_2_sign == 0)
+                if (abs(p_1_diff) < 1e-4)
                 {
                     pt2d inter_p2d;
                     inter_p2d[0] = p_2[0];
@@ -182,9 +185,7 @@ namespace OasisLib
             auto f_id = m_out.facets.create_polygon(added_id.size(), &added_id[0]);
             cell2facet.insert({f_id, c_id});
         }
-        auto repair_mode = static_cast<MeshRepairMode>(static_cast<int>(MeshRepairMode::MESH_REPAIR_COLOCATE) |
-                                                       static_cast<int>(MeshRepairMode::MESH_REPAIR_DUP_F));
-        mesh_repair(m_out, repair_mode);
+        
         return cell2facet;
     }
 

@@ -22,7 +22,8 @@
 using namespace GEO;
 namespace bgi = boost::geometry::index;
 
-TEST_CASE("Test slice query", "[Query]"){
+TEST_CASE("Test slice query", "[Query]")
+{
     std::string path("./test_artifact/3DBenchy.stl");
 
     initialize();
@@ -49,10 +50,12 @@ TEST_CASE("Test slice query", "[Query]"){
     REQUIRE(mesh_tetrahedralize(m_smooth));
 
     auto m_hex = std::make_shared<Mesh>();
-    OasisLib::polyhedral_mesher(m_smooth, *m_hex);
+    OasisLib::polyhedral_mesher(m_smooth, *m_hex, 1000, \
+                "tets_voronoi_boundary", 0.001, 5, 30, true, 0.0);
 
     mesh_save(*m_hex, "./full_mesh.obj", attr);
-    SECTION("test rtree construction"){
+    SECTION("test rtree construction")
+    {
         auto t = OasisLib::MeshHeightSlicer(m_hex);
         Mesh single_layer;
 
@@ -63,5 +66,4 @@ TEST_CASE("Test slice query", "[Query]"){
         mesh_repair(single_layer);
         mesh_save(single_layer, "./mesh_slice.obj", attr);
     }
-
 }
