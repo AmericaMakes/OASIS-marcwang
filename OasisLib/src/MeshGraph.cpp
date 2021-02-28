@@ -92,13 +92,11 @@ namespace OasisLib
         auto bds = this->mesh_tree.bounds();
         auto min_v = bds.min_corner();
         auto max_v = bds.max_corner();
-
-        pt l_pt({min_v.get<0>(), min_v.get<1>(), z});
-        pt m_pt({max_v.get<0>(), max_v.get<1>(), z});
+        double rel_z = min_v.get<2>() + z;
+        pt l_pt({min_v.get<0>(), min_v.get<1>(), rel_z});
+        pt m_pt({max_v.get<0>(), max_v.get<1>(), rel_z});
 
         c_range bbx(l_pt, m_pt);
-
-        double rel_z = min_v.get<2>() + z;
 
         this->mesh_tree.query(bgi::intersects(bbx), std::back_inserter(results));
 
@@ -170,24 +168,27 @@ namespace OasisLib
             auto c_id = c_it->first;
             auto m_pt = c_it->second;
 
-            contour2d hull;
-            bg::convex_hull(m_pt, hull);
+            auto count = bg::num_points(m_pt);
+            if(count >= 3){
+                contour2d hull;
+                bg::convex_hull(m_pt, hull);
 
-            std::vector<index_t> added_id;
+                std::vector<index_t> added_id;
 
-            for (auto p_it = std::cbegin(hull); p_it != std::cend(hull); ++p_it)
-            {
-                pt a_v;
-                auto hull_pt = *p_it;
-                a_v[0] = hull_pt[0];
-                a_v[1] = hull_pt[1];
-                a_v[2] = z;
-                auto a_id = m_out.vertices.create_vertex(a_v.data());
-                added_id.push_back(a_id);
+                for (auto p_it = std::cbegin(hull); p_it != std::cend(hull); ++p_it)
+                {
+                    pt a_v;
+                    auto hull_pt = *p_it;
+                    a_v[0] = hull_pt[0];
+                    a_v[1] = hull_pt[1];
+                    a_v[2] = z;
+                    auto a_id = m_out.vertices.create_vertex(a_v.data());
+                    added_id.push_back(a_id);
+                }
+
+                auto f_id = m_out.facets.create_polygon(added_id.size(), &added_id[0]);
+                cell2facet.insert({f_id, c_id});
             }
-
-            auto f_id = m_out.facets.create_polygon(added_id.size(), &added_id[0]);
-            cell2facet.insert({f_id, c_id});
         }
         Logger::out("MeshHeightSlicer") << "outputs contains : " << cell2facet.size() << " facet" << std::endl;
         return cell2facet;
