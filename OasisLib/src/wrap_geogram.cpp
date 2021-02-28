@@ -115,7 +115,7 @@ PYBIND11_MODULE(OasisLib, m)
         py::arg("nb_points") = 1000, py::arg("simplify") = "tets_voronoi_boundary",
         py::arg("angle_threshold") = 0.001, py::arg("nd_iter_lloyd") = 5,
         py::arg("nb_iter_newton") = 30, py::arg("tessallate_non_convex") = false,
-        py::arg("poly_cell_shrinks") = 0.0, py::arg("generate_ids") = true);
+        py::arg("poly_cell_shrinks") = 0.0);
     
     m.def("remesh_smooth", &remesh_smooth, 
         py::arg("M_in"), py::arg("M_out"), 
