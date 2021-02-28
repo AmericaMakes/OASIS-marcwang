@@ -13,3 +13,4 @@ dependencies:
   - conda-forge::shapely
   - conda-forge::networkx
   - conda-forge::autopep8
+  - conda-forge::lxml
