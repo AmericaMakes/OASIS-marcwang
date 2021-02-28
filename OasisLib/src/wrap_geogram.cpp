@@ -68,7 +68,13 @@ PYBIND11_MODULE(OasisLib, m)
         .def("get_cell_id", [](const MeshFacets &f){
             Attribute<int> cell_id(f.attributes(), "cell_id");
             return cell_id.get_vector();
-        });    
+        })
+        .def("adjacent", &MeshFacets::adjacent)
+        .def("vertex", &MeshFacets::vertex)
+        .def("corners_begin", &MeshFacets::corners_begin)
+        .def("corners_end", &MeshFacets::corners_end)
+        .def("nb_corners", &MeshFacets::nb_corners)
+        .def("connect", &MeshFacets::connect);    
 
     py::enum_<MeshAttributesFlags>(m, "MeshAttributesFlags", py::arithmetic())
         .value("MESH_NO_ATTRIBUTES", MeshAttributesFlags::MESH_NO_ATTRIBUTES)
