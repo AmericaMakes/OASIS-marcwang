@@ -80,7 +80,8 @@ namespace OasisLib
                     }
                 }
                 c_range bx(min_p, max_p);
-                this->mesh_tree.insert(std::make_pair(bx, c));
+                std::array<index_t, 3> id = {(index_t)c, p1_id, p2_id};
+                this->mesh_tree.insert(std::make_pair(bx, id));
             }
         }
     }
@@ -92,8 +93,8 @@ namespace OasisLib
         auto min_v = bds.min_corner();
         auto max_v = bds.max_corner();
 
-        pt l_pt({min_v.get<0>(), min_v.get<1>(), z - 0.1});
-        pt m_pt({max_v.get<0>(), max_v.get<1>(), z + 0.1});
+        pt l_pt({min_v.get<0>(), min_v.get<1>(), z});
+        pt m_pt({max_v.get<0>(), max_v.get<1>(), z});
 
         c_range bbx(l_pt, m_pt);
 
@@ -113,7 +114,8 @@ namespace OasisLib
         for (auto it = target_facet.cbegin(); it != target_facet.cend(); ++it)
         {
             auto box = it -> first;
-            auto c_id = it->second;
+            auto id = it->second;
+            auto c_id = id[0];
 
             auto c_it = pt_accumulator.find(c_id);
 
@@ -122,8 +124,8 @@ namespace OasisLib
                 pt_accumulator.insert({c_id, mpt2d()});
             }
 
-            auto p_1 = box.min_corner();
-            auto p_2 = box.max_corner();
+            auto p_1 = this->mesh_ptr->vertices.point(id[1]);
+            auto p_2 = this->mesh_ptr->vertices.point(id[2]);
 
             auto p_1_diff = p_1[2] - z;
             auto p_2_diff = p_2[2] - z;
@@ -134,7 +136,7 @@ namespace OasisLib
             if (c_1_sign != c_2_sign && (abs(p_1_diff) >= 1e-4 && abs(p_1_diff) >= 1e-4))
             {
                 pt2d inter_p2d;
-                double d = (z - p_1[2]) / (p_2[2]- p_1[1]);
+                double d = (z - p_1[2]) / (p_2[2]- p_1[2]);
                 auto inter_p = p_1 + d * (p_2 - p_1);
 
                 inter_p2d[0] = inter_p[0];

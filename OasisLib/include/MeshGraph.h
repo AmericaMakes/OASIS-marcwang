@@ -23,7 +23,7 @@ BOOST_GEOMETRY_REGISTER_POINT_2D(pt2d, double, bg::cs::cartesian, data()[0], dat
 using c_range = bg::model::box<pt>;
 using mpt2d = bg::model::multi_point<pt2d>;
 using contour2d = bg::model::ring<pt2d>;
-using value = std::pair<c_range, index_t>;
+using value = std::pair<c_range, std::array<index_t, 3>>;
 using rtree = bgi::rtree<value, bgi::quadratic<16>>;
 
 using sh_mesh_ptr = std::shared_ptr<Mesh>;
