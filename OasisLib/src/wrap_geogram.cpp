@@ -116,7 +116,7 @@ PYBIND11_MODULE(OasisLib, m)
         py::arg("colocate_epsilon") = 0.0);
     
     m.def("mesh_tetrahedralize", &mesh_tetrahedralize, 
-        py::arg("M"), py::arg("preprocess") = true, py::arg("refine") = true, 
+        py::arg("M"), py::arg("preprocess") = true, py::arg("refine") = false, 
         py::arg("quality") = 2.0, py::arg("keep_regions") = false);
     
     m.def("polyhedral_mesher", &polyhedral_mesher,
@@ -128,7 +128,7 @@ PYBIND11_MODULE(OasisLib, m)
     
     m.def("remesh_smooth", &remesh_smooth, 
         py::arg("M_in"), py::arg("M_out"), 
-        py::arg("nb_points") = 30000, py::arg("coord_index_t") = 0,
+        py::arg("nb_points") = 10000, py::arg("dim") = 0,
         py::arg("nb_Lloyd_iter") = 5, py::arg("nb_Newton_iter") = 30,
         py::arg("Newton_m") = 7);
 
