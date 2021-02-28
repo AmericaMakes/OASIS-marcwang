@@ -7,6 +7,7 @@
 #include <geogram/voronoi/CVT.h>
 #include <geogram/basic/logger.h>
 #include <geogram/mesh/mesh_remesh.h>
+#include <geogram/basic/attributes.h>
 
 #include "GeogramBase.h"
 #include "GeogramVoronoi.h"
@@ -52,7 +53,8 @@ PYBIND11_MODULE(OasisLib, m)
              py::arg("max_dim") = 0)
         .def("nb_subelements_types", &Mesh::nb_subelements_types)
         .def_readonly("cells", &Mesh::cells)
-        .def_readonly("vertices", &Mesh::vertices);
+        .def_readonly("vertices", &Mesh::vertices)
+        .def_readonly("facets", &Mesh::facets);
     
     py::class_<MeshCells>(m, "MeshCells")
         .def("compute_borders", py::overload_cast<>(&MeshCells::compute_borders));
@@ -60,6 +62,13 @@ PYBIND11_MODULE(OasisLib, m)
     py::class_<MeshVertices>(m, "MeshVertices")
         .def("point", py::overload_cast<index_t>(&MeshVertices::point, py::const_ ))
         .def("nb", &MeshVertices::nb);
+
+    py::class_<MeshFacets>(m, "MeshFacets")
+        .def("nb", &MeshFacets::nb)
+        .def("get_cell_id", [](const MeshFacets &f){
+            Attribute<int> cell_id(f.attributes(), "cell_id");
+            return cell_id.get_vector();
+        });    
 
     py::enum_<MeshAttributesFlags>(m, "MeshAttributesFlags", py::arithmetic())
         .value("MESH_NO_ATTRIBUTES", MeshAttributesFlags::MESH_NO_ATTRIBUTES)
