@@ -66,7 +66,8 @@ PYBIND11_MODULE(OasisLib, m)
     
     py::class_<MeshFacetCornersStore>(m, "MeshFacetCornersStore")
         .def("nb", &MeshVertices::nb)
-        .def("vertex", &MeshFacetCornersStore::vertex);
+        .def("vertex", &MeshFacetCornersStore::vertex)
+        .def("adjacent_facet", &MeshFacetCornersStore::adjacent_facet);
 
     py::class_<MeshFacets>(m, "MeshFacets")
         .def("nb", &MeshFacets::nb)
@@ -79,6 +80,7 @@ PYBIND11_MODULE(OasisLib, m)
         .def("corners_begin", &MeshFacets::corners_begin)
         .def("corners_end", &MeshFacets::corners_end)
         .def("nb_corners", &MeshFacets::nb_corners)
+        .def("nb_vertices", &MeshFacets::nb_vertices)
         .def("connect", &MeshFacets::connect)
         .def("nb_vertices", &MeshFacets::nb_vertices)
         .def("next_corner_around_facet", &MeshFacets::next_corner_around_facet);    
