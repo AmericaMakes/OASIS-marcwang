@@ -127,8 +127,8 @@ namespace OasisLib
             auto p_1 = this->mesh_ptr->vertices.point(id[1]);
             auto p_2 = this->mesh_ptr->vertices.point(id[2]);
 
-            auto p_1_diff = p_1[2] - z;
-            auto p_2_diff = p_2[2] - z;
+            auto p_1_diff = p_1[2] - z - 0.1;
+            auto p_2_diff = p_2[2] - z + 0.1;
 
             auto c_1_sign = geo_sgn(p_1_diff);
             auto c_2_sign = geo_sgn(p_2_diff);
