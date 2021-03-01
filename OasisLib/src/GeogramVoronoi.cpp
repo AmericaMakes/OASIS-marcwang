@@ -5,6 +5,7 @@
 #include <geogram/basic/progress.h>
 #include <geogram/voronoi/CVT.h>
 #include <geogram/voronoi/RVD_mesh_builder.h>
+#include <geogram/mesh/mesh_repair.h>
 
 namespace OasisLib
 {
@@ -89,7 +90,7 @@ namespace OasisLib
             callback.set_generate_ids(true);
             CVT.RVD()->for_each_polyhedron(callback);
         }
-
+        mesh_repair(M_out, MESH_REPAIR_COLOCATE, 1e-5);
         M_out.facets.connect();
         return 1;
     }

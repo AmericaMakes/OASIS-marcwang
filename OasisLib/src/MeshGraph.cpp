@@ -191,7 +191,8 @@ namespace OasisLib
             }
         }
         Logger::out("MeshHeightSlicer") << "outputs contains : " << cell2facet.size() << " facet" << std::endl;
-        
+        mesh_repair(m_out, MESH_REPAIR_COLOCATE, 1e-4);
+        m_out.facets.connect();
         return cell2facet;
     }
 
