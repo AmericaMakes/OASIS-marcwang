@@ -70,7 +70,8 @@ PYBIND11_MODULE(OasisLib, m)
         });
     
     py::class_<MeshCells>(m, "MeshCells")
-        .def("compute_borders", py::overload_cast<>(&MeshCells::compute_borders));
+        .def("compute_borders", py::overload_cast<>(&MeshCells::compute_borders))
+        .def("nb", &MeshCells::nb);
     
     py::class_<MeshVertices>(m, "MeshVertices")
         .def("point", py::overload_cast<index_t>(&MeshVertices::point, py::const_ ))
@@ -92,6 +93,16 @@ PYBIND11_MODULE(OasisLib, m)
                 a_cell.push_back(cell_id[i]);   
             }
             return a_cell;
+        })
+        .def("get_seed_id", [](const MeshFacets &f){
+            Attribute<int> seed_id(f.attributes(), "seed_id");
+            auto size = seed_id.size();
+            std::vector<int> a_seed;
+            for(auto i = 0 ; i < size ; ++i)
+            {
+                a_seed.push_back(seed_id[i]);   
+            }
+            return a_seed;
         })
         .def("adjacent", &MeshFacets::adjacent)
         .def("vertex", &MeshFacets::vertex)
