@@ -54,7 +54,8 @@ PYBIND11_MODULE(OasisLib, m)
         .def("nb_subelements_types", &Mesh::nb_subelements_types)
         .def_readonly("cells", &Mesh::cells)
         .def_readonly("vertices", &Mesh::vertices)
-        .def_readonly("facets", &Mesh::facets);
+        .def_readonly("facets", &Mesh::facets)
+        .def_readonly("facet_corners", &Mesh::facet_corners);
     
     py::class_<MeshCells>(m, "MeshCells")
         .def("compute_borders", py::overload_cast<>(&MeshCells::compute_borders));
@@ -62,6 +63,10 @@ PYBIND11_MODULE(OasisLib, m)
     py::class_<MeshVertices>(m, "MeshVertices")
         .def("point", py::overload_cast<index_t>(&MeshVertices::point, py::const_ ))
         .def("nb", &MeshVertices::nb);
+    
+    py::class_<MeshFacetCornersStore>(m, "MeshFacetCornersStore")
+        .def("nb", &MeshVertices::nb)
+        .def("vertex", &MeshFacetCornersStore::vertex);
 
     py::class_<MeshFacets>(m, "MeshFacets")
         .def("nb", &MeshFacets::nb)
@@ -74,7 +79,9 @@ PYBIND11_MODULE(OasisLib, m)
         .def("corners_begin", &MeshFacets::corners_begin)
         .def("corners_end", &MeshFacets::corners_end)
         .def("nb_corners", &MeshFacets::nb_corners)
-        .def("connect", &MeshFacets::connect);    
+        .def("connect", &MeshFacets::connect)
+        .def("nb_vertices", &MeshFacets::nb_vertices)
+        .def("next_corner_around_facet", &MeshFacets::next_corner_around_facet);    
 
     py::enum_<MeshAttributesFlags>(m, "MeshAttributesFlags", py::arithmetic())
         .value("MESH_NO_ATTRIBUTES", MeshAttributesFlags::MESH_NO_ATTRIBUTES)

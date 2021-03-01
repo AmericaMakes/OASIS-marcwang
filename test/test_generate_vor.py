@@ -8,7 +8,7 @@ from OasisLib import MeshHeightSlicer
 class GeogramTest(unittest.TestCase):
 
     def setUp(self):
-        self.stl_path = './test/test_artifact/3DBenchy.stl'
+        self.stl_path = './test/test_artifact/Parameter_quality_nut_1.stl'
 
         m_in = GeoMesh()
         load_status = mesh_load(self.stl_path, m_in)
@@ -38,7 +38,7 @@ class GeogramTest(unittest.TestCase):
         single = GeoMesh()
         self.assertTrue(self.voronoi.vertices.nb() > 0)
         mhsl = MeshHeightSlicer(self.voronoi)
-        id_mapping = mhsl.get_layer(single, 20.0)
+        id_mapping = mhsl.get_layer(single, 0.5)
 
         out = './test/test_output/single_layer.obj'
         mesh_save(single, out, self.out_attr)

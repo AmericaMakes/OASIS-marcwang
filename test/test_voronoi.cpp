@@ -48,11 +48,14 @@ TEST_CASE("Test slice query", "[Query]")
     remesh_smooth(m_in, m_smooth, nb_points);
 
     REQUIRE(mesh_tetrahedralize(m_smooth));
+    mesh_save(m_smooth, "./full_mesh_tet.obj", attr);
+    m_smooth.cells.compute_borders();
 
     auto m_hex = std::make_shared<Mesh>();
     OasisLib::polyhedral_mesher(m_smooth, *m_hex, 1000, \
                 "tets_voronoi_boundary", 0.001, 5, 30, true, 0.0);
-
+    m_hex->cells.connect();
+    m_hex->facets.connect();
     mesh_save(*m_hex, "./full_mesh.obj", attr);
     SECTION("test rtree construction")
     {
