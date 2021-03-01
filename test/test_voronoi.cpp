@@ -62,9 +62,9 @@ TEST_CASE("Test slice query", "[Query]")
         Mesh single_layer;
 
         REQUIRE(t.nb_nodes > 0);
-        auto id_map = t.get_layer(single_layer, 20);
+        t.get_layer(single_layer, 20);
 
-        REQUIRE(id_map.size() > 0);
+        REQUIRE(single_layer.facets.nb() > 0);
         mesh_repair(single_layer);
         mesh_save(single_layer, "./mesh_slice.obj", attr);
     }

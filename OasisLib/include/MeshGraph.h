@@ -38,17 +38,16 @@ namespace OasisLib
 
         size_t nb_nodes;
         MeshHeightSlicer(sh_mesh_ptr m_ptr);
-        id_map get_layer(Mesh &m_out, double z);
+        void get_layer(Mesh &m_out, double z);
 
     protected:
         rtree mesh_tree;
         sh_mesh_ptr mesh_ptr;
 
     private:
-        id_map clip_cell(std::vector<value> &target_facet, Mesh &m_out, double z);
+        void clip_cell(std::vector<value> &target_facet, Mesh &m_out, double z);
         void initialize_rtree();
         void check_mesh();
-
     };
 
 }

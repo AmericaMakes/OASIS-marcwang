@@ -86,7 +86,7 @@ namespace OasisLib
         }
     }
 
-    id_map MeshHeightSlicer::get_layer(Mesh &m_out, double z)
+    void MeshHeightSlicer::get_layer(Mesh &m_out, double z)
     {
         std::vector<value> results;
         auto bds = this->mesh_tree.bounds();
@@ -102,14 +102,11 @@ namespace OasisLib
 
         Logger::out("MeshHeightSlicer") << "computed " << results.size() << " intersection" << std::endl;
 
-        auto c2f = this->clip_cell(results, m_out, rel_z);
-
-        return c2f;
+        this->clip_cell(results, m_out, rel_z);
     }
 
-    id_map MeshHeightSlicer::clip_cell(std::vector<value> &target_facet, Mesh &m_out, double z)
+    void MeshHeightSlicer::clip_cell(std::vector<value> &target_facet, Mesh &m_out, double z)
     {
-        id_map cell2facet;
         std::map<index_t, mpt2d> pt_accumulator;
         for (auto it = target_facet.cbegin(); it != target_facet.cend(); ++it)
         {
@@ -187,13 +184,10 @@ namespace OasisLib
                 }
 
                 auto f_id = m_out.facets.create_polygon(added_id.size(), &added_id[0]);
-                cell2facet.insert({f_id, c_id});
             }
         }
-        Logger::out("MeshHeightSlicer") << "outputs contains : " << cell2facet.size() << " facet" << std::endl;
         mesh_repair(m_out, MESH_REPAIR_COLOCATE, 1e-4);
         m_out.facets.connect();
-        return cell2facet;
     }
 
 }
