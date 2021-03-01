@@ -28,8 +28,9 @@ namespace OasisLib
             {
                 return 0;
             }
-            M_in.cells.compute_borders();
         }
+
+        M_in.cells.compute_borders();
 
         index_t dim = M_in.vertices.dimension();
 
@@ -89,6 +90,7 @@ namespace OasisLib
             CVT.RVD()->for_each_polyhedron(callback);
         }
 
+        M_out.facets.connect();
         return 1;
     }
 
