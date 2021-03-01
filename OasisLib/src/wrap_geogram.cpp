@@ -55,7 +55,19 @@ PYBIND11_MODULE(OasisLib, m)
         .def_readonly("cells", &Mesh::cells)
         .def_readonly("vertices", &Mesh::vertices)
         .def_readonly("facets", &Mesh::facets)
-        .def_readonly("facet_corners", &Mesh::facet_corners);
+        .def_readonly("facet_corners", &Mesh::facet_corners)
+        .def("get_facet_vertex", [](const Mesh &m_in, index_t f)
+        {
+            auto c_begin = m_in.facets.corners_begin(f);
+            auto c_end = m_in.facets.corners_end(f);
+            std::vector<index_t> v_id;
+            for(auto i = c_begin; i != c_end; ++i)
+            {
+                auto v = m_in.facet_corners.vertex(i);
+                v_id.push_back(v);
+            }
+            return v_id;
+        });
     
     py::class_<MeshCells>(m, "MeshCells")
         .def("compute_borders", py::overload_cast<>(&MeshCells::compute_borders));
@@ -73,7 +85,13 @@ PYBIND11_MODULE(OasisLib, m)
         .def("nb", &MeshFacets::nb)
         .def("get_cell_id", [](const MeshFacets &f){
             Attribute<int> cell_id(f.attributes(), "cell_id");
-            return cell_id.get_vector();
+            auto size = cell_id.size();
+            std::vector<int> a_cell;
+            for(auto i = 0 ; i < size ; ++i)
+            {
+                a_cell.push_back(cell_id[i]);   
+            }
+            return a_cell;
         })
         .def("adjacent", &MeshFacets::adjacent)
         .def("vertex", &MeshFacets::vertex)
