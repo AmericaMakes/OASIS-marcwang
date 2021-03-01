@@ -55,7 +55,7 @@ namespace OasisLib
             auto c = cell_id[f];
             auto c_begin = this -> mesh_ptr -> facets.corners_begin(f);
             auto c_end = this -> mesh_ptr -> facets.corners_end(f);
-            for (auto c_i = c_begin; c_i < c_end; ++c_i)
+            for (auto c_i = c_begin; c_i != c_end; ++c_i)
             {
                 pt min_p;
                 pt max_p;
@@ -93,8 +93,8 @@ namespace OasisLib
         auto min_v = bds.min_corner();
         auto max_v = bds.max_corner();
         double rel_z = min_v.get<2>() + z;
-        pt l_pt({min_v.get<0>(), min_v.get<1>(), rel_z});
-        pt m_pt({max_v.get<0>(), max_v.get<1>(), rel_z});
+        pt l_pt({min_v.get<0>(), min_v.get<1>(), rel_z - 0.1});
+        pt m_pt({max_v.get<0>(), max_v.get<1>(), rel_z + 0.1});
 
         c_range bbx(l_pt, m_pt);
 
@@ -127,8 +127,8 @@ namespace OasisLib
             auto p_1 = this->mesh_ptr->vertices.point(id[1]);
             auto p_2 = this->mesh_ptr->vertices.point(id[2]);
 
-            auto p_1_diff = p_1[2] - z - 0.1;
-            auto p_2_diff = p_2[2] - z + 0.1;
+            auto p_1_diff = p_1[2] - z;
+            auto p_2_diff = p_2[2] - z;
 
             auto c_1_sign = geo_sgn(p_1_diff);
             auto c_2_sign = geo_sgn(p_2_diff);
@@ -191,8 +191,7 @@ namespace OasisLib
             }
         }
         Logger::out("MeshHeightSlicer") << "outputs contains : " << cell2facet.size() << " facet" << std::endl;
-        mesh_repair(m_out, MESH_REPAIR_COLOCATE);
-        m_out.facets.connect();
+        
         return cell2facet;
     }
 
