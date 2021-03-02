@@ -5,7 +5,7 @@ from trimesh.voxel.creation import voxelize
 from trimesh.intersections import plane_lines
 import numpy as np
 
-def straight_hatch(contour: Polygon, offset: float, angle: float):
+def straight_hatch(contour: Polygon, offset: float, angle: float) -> MultiLineString:
     center_rot = contour.centroid
     r_contour = affinity.rotate(contour, angle, origin=center_rot)
     bounds = r_contour.bounds
