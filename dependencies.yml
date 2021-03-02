@@ -6,7 +6,7 @@ dependencies:
   - numpy
   - scipy
   - pandas
-  - conda-forge::openpyxl
+  - conda-forge::xlrd
   - conda-forge::trimesh
   - conda-forge::pyclipper
   - conda-forge::pylint
