@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 
 from datetime import date
-from typing import Union, List
+from typing import Union, List, Dict
+
+from shapely.geometry import Polygon, MultiLineString
 
 @dataclass
 class AlsamHeader():
@@ -105,3 +107,6 @@ class  PartsSetting():
     contour_trajectory : int 
     hatch_trajectory : int
 
+    contour : Dict[float, List[Polygon]] = None 
+    hatch : Dict[float, List[MultiLineString]] = None
+    
