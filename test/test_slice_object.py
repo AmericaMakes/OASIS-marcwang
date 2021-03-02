@@ -8,4 +8,4 @@ class SliceTest(unittest.TestCase):
         self.input_file = './test/test_artifact/3DBenchy.stl'
 
     def test_slicing(self):
-        slice_object(self.input_file, 0.1)
+        slice_object(self.input_file, 0.1, 0.1, 0.2, 2)
