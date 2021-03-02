@@ -4,13 +4,18 @@ import numpy as np
 import trimesh
 
 from oasis.hatching import straight_hatch
+from oasis.clipper_offsetting import ClipperOffsetting
 
-from shapely.geometry import Polygon
-from typing import Dict, List
+from shapely.geometry import Polygon, MultiLineString
+from typing import Dict, List, Tuple
 from scipy.spatial import KDTree
 import random
 
-def slice_object(filename: str, layer_thickness: float, h_width):
+
+def slice_object(filename: str, layer_thickness: float,
+                 h_width: float, contour_offset: float,
+                 n_offset: int) -> Tuple[Dict[float, List[Polygon]],
+                                         Dict[float, List[MultiLineString]]]:
 
     trimesh_inst = trimesh.load(filename)
 
@@ -30,8 +35,8 @@ def slice_object(filename: str, layer_thickness: float, h_width):
     assert(status_vor)
     bbs = trimesh_inst.extents
 
-    contour_ls = []
-    hatch_ls = []
+    contour_ls = {}
+    hatch_ls = {}
     prev_poly = {}
     prev_kdt = None
     prev_g = None
@@ -44,28 +49,49 @@ def slice_object(filename: str, layer_thickness: float, h_width):
 
         g, kd = init_g(current_poly, prev_poly, prev_kdt, prev_g, single)
 
-        hatch_ls.append(process_hatch(g, current_poly, h_width))
+        hatches = process_hatch(g, current_poly, h_width)
         trimesh_2d_sl = trimesh_inst.section(plane_origin=[0, 0, i],
                                              plane_normal=[0, 0, 1])
 
-        slice_2D, _ = trimesh_2d_sl.to_planar()
-        contour_ls.append(slice_2D)
+        slice_2d, _ = trimesh_2d_sl.to_planar()
+
+        slice_2d.merge_vertices()
+        polygons_2d = slice_2d.polygons_full
+
+        offset_c = []
+        for c_poly in polygons_2d:
+            offsetter = ClipperOffsetting(c_poly)
+            offset_c.append(offsetter.get_offset(contour_offset, n_offset))
+
+        hatches = trim_hatch(offset_c, hatches)
+        contour_ls[i] = offset_c
+        hatch_ls[i] = hatches
 
         prev_poly = current_poly
         prev_kdt = kd
         prev_g = g
-    
+
     return hatch_ls, contour_ls
 
+
+def trim_hatch(contour: List[List[Polygon]], hatches: List[MultiLineString]):
+    for c_out in contour:
+        inner_c = c_out[-1]
+        for i in range(len(hatches)):
+            hatches[i] = hatches[i].intersection(inner_c)
+    return hatches
+
+
 def init_g(current_poly: List[Polygon], prev_poly: List[Polygon],
-           prev_kdt: KDTree, prev_g: nt.Graph, mesh: osl.GeoMesh):
+           prev_kdt: KDTree, prev_g: nt.Graph, mesh: osl.GeoMesh) -> Tuple[nt.Graph, KDTree]:
     g = nt.Graph()
     data = []
     for f, poly in enumerate(current_poly):
         centroid = np.array(poly.centroid.coords).squeeze()
         data.append(centroid)
-        w, ang = compute_prev_cost_and_angle(centroid, prev_kdt, prev_poly, prev_g)
-        g.add_node(f, weight=w, angle = ang)
+        w, ang = compute_prev_cost_and_angle(
+            centroid, prev_kdt, prev_poly, prev_g)
+        g.add_node(f, weight=w, angle=ang)
 
     t = KDTree(data)
 
@@ -82,7 +108,7 @@ def init_g(current_poly: List[Polygon], prev_poly: List[Polygon],
 
 
 def compute_prev_cost_and_angle(c_centroid: np.ndarray, prev_kdt: KDTree,
-                      prev_poly: List[Polygon], prev_g: nt.Graph):
+                                prev_poly: List[Polygon], prev_g: nt.Graph) -> Tuple[float, float]:
     if prev_kdt is None or prev_g is None:
         return 0, random.uniform(0, 360)
 
@@ -95,7 +121,7 @@ def compute_prev_cost_and_angle(c_centroid: np.ndarray, prev_kdt: KDTree,
     return cost, angle
 
 
-def convert_mesh_poly(mesh: osl.GeoMesh, f):
+def convert_mesh_poly(mesh: osl.GeoMesh, f) -> Polygon:
     c_it = range(mesh.facets.corners_begin(f), mesh.facets.corners_end(f))
 
     ring = []
@@ -107,30 +133,31 @@ def convert_mesh_poly(mesh: osl.GeoMesh, f):
     return Polygon(ring)
 
 
-def process_hatch(g: nt.Graph, current_poly: List[Polygon], hatch : float):
+def process_hatch(g: nt.Graph, current_poly: List[Polygon], hatch: float) -> List[MultiLineString]:
     # TODO sort on subset and pop to avoid reprocessing same
     n_path = len(current_poly)
     mod_g = g.copy()
-    sorted_n = sorted(list(mod_g.nodes(data='weight')), key = lambda x : x[1])
-    min_g = sorted_n[0]
+    sorted_n = sorted(list(mod_g.nodes(data='weight')), key=lambda x: x[1])
+    min_g = sorted_n[0][0]
     count = 0
     hatch_order = []
     while(count < n_path):
-        poly = current_poly[min_g[0]]
+        poly = current_poly[min_g]
         angle = mod_g.nodes[min_g]['angle']
         hatch = straight_hatch(poly, hatch, angle)
         hatch_order.append(hatch)
 
         c_area = poly.area
 
-        for c in g.adj[min_g[0]].keys():
+        for c in g.adj[min_g].keys():
             g.nodes[c]['weight'] += c_area * 0.5
 
         if len(mod_g) > 1:
-            mod_g.remove_node(min_g[0])
-            sorted_n = sorted(list(mod_g.nodes(data='weight')), key = lambda x : x[1])
-            min_g = sorted_n[0]
-        
+            mod_g.remove_node(min_g)
+            sorted_n = sorted(
+                list(mod_g.nodes(data='weight')), key=lambda x: x[1])
+            min_g = sorted_n[0][0]
+
         count += 1
 
     return hatch_order
