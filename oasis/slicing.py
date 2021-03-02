@@ -14,8 +14,8 @@ import random
 
 def slice_object(filename: str, layer_thickness: float,
                  h_width: float, contour_offset: float,
-                 n_offset: int) -> Tuple[Dict[float, List[Polygon]],
-                                         Dict[float, List[MultiLineString]]]:
+                 n_offset: int) -> Tuple[List[List[Polygon]],
+                                         List[List[MultiLineString]]]:
 
     trimesh_inst = trimesh.load(filename)
 
@@ -35,8 +35,8 @@ def slice_object(filename: str, layer_thickness: float,
     assert(status_vor)
     bbs = trimesh_inst.extents
 
-    contour_ls = {}
-    hatch_ls = {}
+    contour_ls = []
+    hatch_ls = []
     prev_poly = {}
     prev_kdt = None
     prev_g = None
@@ -64,8 +64,8 @@ def slice_object(filename: str, layer_thickness: float,
             offset_c.append(offsetter.get_offset(contour_offset, n_offset))
 
         hatches = trim_hatch(offset_c, hatches)
-        contour_ls[i] = offset_c
-        hatch_ls[i] = hatches
+        contour_ls.append(offset_c)
+        hatch_ls.append(hatches)
 
         prev_poly = current_poly
         prev_kdt = kd
