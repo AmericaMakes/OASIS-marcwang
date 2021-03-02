@@ -6,8 +6,8 @@ from typing import Union, List
 @dataclass
 class AlsamHeader():
     AmericaMakesSchemaVersion : date
-    LayerNum : int # > 0
-    LayerThickness : float # > 0 optional
+    LayerThickness : float # > 0 
+    LayerNum : int = 0 # > 0 # compute later 
     AbsoluteHeight : float = -1 # > 0 optional
     DosingFactor : float = -1 # > 0 optional
     BuildDescription : str = '' # optional
@@ -34,17 +34,17 @@ class AlsamWobble():
 @dataclass
 class AlsamTraveler():
     ID : str 
-    SyncDelay : int # only if multi laser
     Power : float = -1 # optional
     SpotSize : float = -1 # optional
     Wobble : AlsamWobble = None # optional
+    SyncDelay : int = 0 # only if multi laser
 
 @dataclass
 class AlsamSegmentStyle():
     ID : str
     VelocityProfileID : str 
-    LaserMode : str = "Independent" # FollowMe or Independent
     Traveler : AlsamTraveler
+    LaserMode : str = "Independent" # FollowMe or Independent
 
 @dataclass
 class AlsamSegStart():
@@ -76,3 +76,32 @@ class AlsamTrajectory():
     TrajectoryID : int
     PathProcessingMode : str # sequential or concurrent
     Path : List[AlsamPath]
+
+@dataclass
+class PrintRegions():
+    ID : str
+    VelocityProfile : int
+    ContourStyle : str 
+    number_contour : int 
+    contour_offset : float 
+    contour_spacing : float 
+    contour_skywriting : int 
+
+    HatchStyle : str
+    HatchOffset : float 
+    HatchSpacing : float 
+    HatchSkyWriting : int 
+    HatchScheme : 0 
+    InitialAngle : float 
+    AngleRotation : float 
+
+@dataclass
+class  PartsSetting():
+    filename : str 
+    x : float 
+    y : float 
+    z : float 
+    region_profile : str
+    contour_trajectory : int 
+    hatch_trajectory : int
+
