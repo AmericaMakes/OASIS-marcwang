@@ -9,6 +9,11 @@ from datetime import date
 class PrintFileLoader():
     def __init__(self, filename):
         self.filename = filename
+        self.header = self.load_header()
+        self.vel_profile = self.load_velocity_profile()
+        self.seg_style  = self.load_segment_style()
+
+        self.regions, self.parts = self.load_parts()
 
     def load_header(self) -> oa_s.AlsamHeader:
         df = pd.read_excel(self.filename, sheet_name=1, engine="xlrd")
